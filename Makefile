@@ -1,5 +1,5 @@
 # Example 30
-EXE=sv
+EXE=skel
 
 # Main target
 all: $(EXE)
@@ -25,7 +25,6 @@ CLEAN=rm -f $(EXE) *.o *.a
 endif
 
 # Dependencies
-sv.o: sv.c CFunctions.h
 fatal.o: fatal.c CFunctions.h
 errcheck.o: errcheck.c CFunctions.h
 print.o: print.c CFunctions.h
@@ -34,9 +33,11 @@ loadobj.o: loadobj.c CFunctions.h
 projection.o: projection.c CFunctions.h
 
 Skeleton.o: Skeleton.cpp Skeleton.hpp
+skel.o: skel.cpp Skeleton.hpp
+cstr.o: cstr.cpp Skeleton.hpp
 
 #  Create archive
-Skeleton.a:fatal.o errcheck.o print.o loadtexbmp.o read.o projection.o loadply.o loadmodel.o Skeleton.o
+Skeleton.a:fatal.o errcheck.o print.o loadtexbmp.o read.o projection.o loadply.o loadmodel.o cstr.o Skeleton.o
 	ar -rcs $@ $^
 
 # Compile rules
@@ -46,8 +47,8 @@ Skeleton.a:fatal.o errcheck.o print.o loadtexbmp.o read.o projection.o loadply.o
 	g++ -c $(CFLG)  $<
 
 #  Link
-sv:sv.o Skeleton.a
-	gcc $(CFLG) -o $@ $^  $(LIBS)
+skel:skel.o Skeleton.a
+	g++ $(CFLG) -o $@ $^  $(LIBS)
 
 #  Clean
 clean:
