@@ -1,3 +1,12 @@
+Skeleton Model 
+SMPL Research Project
+Gabrielle Partch 
+Jan 2025
+
+
+
+//----------------------------
+
 sv: Skeleton Viewer
 
 Willem A. (Vlakkies) Schreuder
@@ -19,3 +28,4 @@ Key bindings
   PgDn/PgUp  Zoom in and out
   0          Reset view angle
   ESC        Exit
+
