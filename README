@@ -1,0 +1,21 @@
+sv: Skeleton Viewer
+
+Willem A. (Vlakkies) Schreuder
+CSCI4229/5229 Fall 2023
+
+
+Load and display OBJ files.
+Parameters <obj file>
+
+
+Key bindings
+  z/Z        Move skeleton up/down
+  m          Toggle solid/mesh
+  p          Toggle between orthogonal/perspective projections
+  s          Start/stop light
+  -/+        Decrease/increase light elevation
+  a          Toggle axes
+  arrows     Change view angle
+  PgDn/PgUp  Zoom in and out
+  0          Reset view angle
+  ESC        Exit
