@@ -84,6 +84,10 @@ static void addvec(float* V,vec3 v)
 //
 //  Find matching vertex group
 //
+// name - property names, xyz
+// Nvar - number of properties
+// v - nxyz
+// n - 3
 static int findname(char* name[],int Nvar,const char* v[],int n)
 {
    for (int k=0;k<=Nvar-n;k++)
@@ -140,10 +144,12 @@ vbo_t LoadPLY(const char* file)
       Fatal("Invalid vertex count: %d\n",Nv);
       
    //  Process fields
-   int   type[MAX];
-   off_t off[MAX];
-   char* name[MAX];
-   int N=0,Nvar=0;
+
+   int   type[MAX]; // Data type
+   off_t off[MAX]; // Byte offset
+   char* name[MAX]; // Names of different properties, eg xyz
+   int N=0; // Number of bytes for all properties
+   int Nvar=0; // Number of properties
    for (int k=0 ; (line=readline(f)) && compstr(line,"property ")==0 && k<MAX ; k++)
    {
       Nvar++;
