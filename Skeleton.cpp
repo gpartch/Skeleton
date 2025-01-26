@@ -8,3 +8,10 @@ Skeleton::~Skeleton()
 {
 
 }
+
+//-------------------------------------------------------------------
+
+void Skeleton::createDisplayLists()
+{
+
+}

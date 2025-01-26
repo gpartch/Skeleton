@@ -12,6 +12,7 @@
  *  ESC        Exit
  */
 #include "CFunctions.h"
+#include "Skeleton.hpp"
 
 int axes=1;         //  Display axes
 int light=1;        //  Toggle light
@@ -336,15 +337,15 @@ int main(int argc,char* argv[])
    for (int k=0;k<Nskel;k++)
    {
       // Mode Setting
-      char* mode[] = {"Solid","WireHidden","Wireframe"};
+      std::string mode[] = {"Solid","WireHidden","Wireframe"};
       int modid = glutCreateMenu(menu);
       for (int i=0;i<3;i++)
-         glutAddMenuEntry(mode[i],100+10*k+i);
+         glutAddMenuEntry(toCStr(mode[i]),100+10*k+i);
       // Color setting
-      char* color[] = {"white","red","green","blue"};
+      std::string color[] = {"white","red","green","blue"};
       int colid = glutCreateMenu(menu);
       for (int i=0;i<4;i++)
-         glutAddMenuEntry(color[i],200+10*k+i);
+         glutAddMenuEntry(toCStr(color[i]),200+10*k+i);
       menuid[k] = glutCreateMenu(menu);
       glutAddSubMenu("Mode",modid);
       glutAddSubMenu("Color",colid);
