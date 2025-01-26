@@ -11,7 +11,8 @@
  *  0          Reset view angle
  *  ESC        Exit
  */
-#include "Skeleton.h"
+#include "CFunctions.h"
+
 int axes=1;         //  Display axes
 int light=1;        //  Toggle light
 int proj=1;         //  Projection type

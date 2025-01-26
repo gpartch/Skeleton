@@ -1,19 +1,11 @@
-#ifndef Skeleton
-#define Skeleton
+#ifndef CFUNCTIONS_H
+#define CFUNCTIONS_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
-
-// class Skeleton{
-//    public:
-//       Skeleton();
-//       ~Skeleton();
-//    private:
-
-// }
 
 // GLEW _MUST_ be included first
 #ifdef USEGLEW

@@ -1,6 +1,6 @@
 //  CSCIx229 library
 //  Willem A. (Vlakkies) Schreuder
-#include "Skeleton.h"
+#include "CFunctions.h"
 
 //
 //  Load texture from BMP file

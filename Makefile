@@ -25,16 +25,18 @@ CLEAN=rm -f $(EXE) *.o *.a
 endif
 
 # Dependencies
-sv.o: sv.c Skeleton.h
-fatal.o: fatal.c Skeleton.h
-errcheck.o: errcheck.c Skeleton.h
-print.o: print.c Skeleton.h
-loadtexbmp.o: loadtexbmp.c Skeleton.h
-loadobj.o: loadobj.c Skeleton.h
-projection.o: projection.c Skeleton.h
+sv.o: sv.c CFunctions.h
+fatal.o: fatal.c CFunctions.h
+errcheck.o: errcheck.c CFunctions.h
+print.o: print.c CFunctions.h
+loadtexbmp.o: loadtexbmp.c CFunctions.h
+loadobj.o: loadobj.c CFunctions.h
+projection.o: projection.c CFunctions.h
+
+Skeleton.o: Skeleton.cpp Skeleton.hpp
 
 #  Create archive
-Skeleton.a:fatal.o errcheck.o print.o loadtexbmp.o read.o projection.o loadply.o loadmodel.o
+Skeleton.a:fatal.o errcheck.o print.o loadtexbmp.o read.o projection.o loadply.o loadmodel.o Skeleton.o
 	ar -rcs $@ $^
 
 # Compile rules

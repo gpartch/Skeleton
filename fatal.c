@@ -1,6 +1,6 @@
 //  CSCIx239 library
 //  Willem A. (Vlakkies) Schreuder
-#include "Skeleton.h"
+#include "CFunctions.h"
 
 //
 //  Print message to stderr and exit
