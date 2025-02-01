@@ -12,12 +12,8 @@ const char* nxyz[3] = {"nx","ny","nz"};
 const char* rgba[4] = {"red","green","blue","alpha"};
 
 //  Vector 3 math
-
-// 3D vector
-typedef struct {float x,y,z;} vec3; 
-// difference between two vectors
-static vec3 sub(vec3 v1,vec3 v2) {return (vec3){v1.x-v2.x , v1.y-v2.y , v1.z-v2.z};} 
-// vector cross product
+typedef struct {float x,y,z;} vec3;
+static vec3 sub(vec3 v1,vec3 v2) {return (vec3){v1.x-v2.x , v1.y-v2.y , v1.z-v2.z};}
 static vec3 cross(vec3 v1,vec3 v2) {return (vec3){v1.y*v2.z-v2.y*v1.z , v1.z*v2.x-v2.z*v1.x , v1.x*v2.y-v2.x*v1.y};}
 static vec3 normalize(vec3 v)
 {
@@ -84,10 +80,6 @@ static void addvec(float* V,vec3 v)
 //
 //  Find matching vertex group
 //
-// name - property names, xyz
-// Nvar - number of properties
-// v - nxyz
-// n - 3
 static int findname(char* name[],int Nvar,const char* v[],int n)
 {
    for (int k=0;k<=Nvar-n;k++)
@@ -122,7 +114,7 @@ static buf_t find(char* name[],off_t off[],int type[],int Nvar,const char* v[],i
 //
 vbo_t LoadPLY(const char* file)
 {
-   //  Open file in r/read mode
+   //  Open file
    FILE* f = fopen(file,"r");
    if (!f) Fatal("Cannot open file %s\n",file);
    //  Check initial line for header
@@ -144,12 +136,10 @@ vbo_t LoadPLY(const char* file)
       Fatal("Invalid vertex count: %d\n",Nv);
       
    //  Process fields
-
-   int   type[MAX]; // Data type
-   off_t off[MAX]; // Byte offset
-   char* name[MAX]; // Names of different properties, eg xyz
-   int N=0; // Number of bytes for all properties
-   int Nvar=0; // Number of properties
+   int   type[MAX];
+   off_t off[MAX];
+   char* name[MAX];
+   int N=0,Nvar=0;
    for (int k=0 ; (line=readline(f)) && compstr(line,"property ")==0 && k<MAX ; k++)
    {
       Nvar++;
@@ -282,7 +272,7 @@ vbo_t LoadPLY(const char* file)
          //  Must be triangles
          unsigned char n;
          if (fread(&n,1,1,f)!=1) Fatal("Cannot read facet count %d\n",k);
-         if (n!=3) Fatal("Invalid facet count %d for %d\n",n,k);
+         if (n!=3) Fatal("Invalid facet count1 %d for %d\n",n,k);
          //  Read index
          if (fread(E+3*k,sizeof(int),3,f)!=3) Fatal("Cannot read facet index %d\n",k);
       }
@@ -298,7 +288,7 @@ vbo_t LoadPLY(const char* file)
          if (sscanf(line,"%hhd %d %d %d",&n,e,e+1,e+2)!=4)
            Fatal("Error reading index: %s\n",line);
          else if (n!=3)
-           Fatal("Invalid facet count %d for %d\n",n,k);
+           Fatal("Invalid facet count2 %d for %d\n",n,k);
          e += 3;
       }
    }
@@ -361,6 +351,10 @@ vbo_t LoadPLY(const char* file)
    free(E);
    for (int k=0;k<Nvar;k++)
       free(name[k]);
+
+   
+   // printf("%s\n","VBO in LoadPLY:");
+   // printVBO(vbo);
 
    return vbo;
 }
