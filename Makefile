@@ -31,13 +31,13 @@ print.o: print.c CFunctions.h
 loadtexbmp.o: loadtexbmp.c CFunctions.h
 loadobj.o: loadobj.c CFunctions.h
 projection.o: projection.c CFunctions.h
-
+printVBO.o: printVBO.c CFunctions.h
 Skeleton.o: Skeleton.cpp Skeleton.hpp
 skel.o: skel.cpp Skeleton.hpp
 cstr.o: cstr.cpp Skeleton.hpp
 
 #  Create archive
-Skeleton.a:fatal.o errcheck.o print.o loadtexbmp.o read.o projection.o loadply.o loadmodel.o cstr.o Skeleton.o
+Skeleton.a:fatal.o errcheck.o print.o loadtexbmp.o read.o projection.o loadply.o loadmodel.o printVBO.o cstr.o Skeleton.o
 	ar -rcs $@ $^
 
 # Compile rules

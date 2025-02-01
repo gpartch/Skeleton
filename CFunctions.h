@@ -78,6 +78,7 @@ char* readstr(char* line,const char* skip);
 int compstr(char* line,char* ref);
 float maxdim8(float dim,double xyz[],int n);
 float maxdim4(float dim,float xyz[],int n);
+void printVBO(vbo_t vbo, int v);
 
 #ifdef __cplusplus
 }
