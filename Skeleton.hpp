@@ -5,24 +5,29 @@
 
 #include <iostream>
 #include <vector>
+#include <sys/types.h>
+#include <memory>
 
 using std::cout;
 using std::string;
 using std::vector;
+using std::unique_ptr;
+using std::shared_ptr;
 
 char * toCStr(string str); // defined in file cstr.cpp
-bool str2bool(string str) {return str != "";}; // return bool for whether or not string is empty
+
 
 struct angles{ int th,ph; }; // angles/degrees of freedom for bone
 struct offset { int x,y,z; }; // offset to the position of a bone
 struct bone
 {
    vbo_t vbo; // vbo for the bone
-   unsigned int len; // length of the bone
+   double len; // length of the bone
    char ch; // character signifier for which bone it is
    angles ang; // two angles, th and ph, for two degrees of freedom
    offset off; // offset to the position of a bone
-   vector<bone*> adj; // adjacent bones
+   string name; // bone name
+   vector<shared_ptr<bone>> adj; // adjacent bones
 };
 
 class Skeleton{
@@ -31,23 +36,24 @@ class Skeleton{
       ~Skeleton();
 
       void resetAng(); // reset all bone angles
-      void printBones(); // print bones information to terminal
+      const void printBones(bool v); // print bones information to terminal - set bool v to true for verbose
+      const void printBone(int idx, bool v);
       void updateAng(int idx, int th, int ph); // update bone motion angles
       void drawSkeleton(); // draw the complete skeleton
       void drawBone(int idx); // draw bone at origin
-      void drawLeg(int idx, float i, char ch, angles ang_l[5]); // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
-      void drawArm(int idx, float i, char ch, angles ang_a[5]); // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
+      void drawLeg(int idx, float i, char ch); // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
+      void drawArm(int idx, float i, char ch); // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
       void drawLabel(char ch); // draw char signifier labels at each bone
 
    private:
       vbo_t readBoneFile(string); // read data from bone file and create vbo
-      bone* newBone(int); // retrieve data for and create new bone
+      shared_ptr<bone> newBone(int); // retrieve data for and create new bone
       void initBoneAdj(); // initialize bone adjacencies
       
       // number of bones
       const static int NUM_BONES = 23;
       // array of pointers to bones
-      bone* bones[NUM_BONES];
+      shared_ptr<bone> bones[NUM_BONES];
       // path to directory that contains bone files
       const string bones_adr = "./bones"; 
       // file names for bones
@@ -113,7 +119,7 @@ class Skeleton{
          "right toes"
       };
       // length of bones in inches TODO: *LENGTHS ARE ESTIMATED, FIX LATER*
-      const unsigned int bones_l[NUM_BONES]
+      const double bones_l[NUM_BONES]
       {
          3,    // 0.A pelvis/ tailbone/ lower spine
          17,   // 1.B torso/ thorax/ mid-spine

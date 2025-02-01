@@ -21,51 +21,55 @@ int th=0;           //  Azimuth of view angle
 int ph=0;           //  Elevation of view angle
 int fov=55;         //  Field of view (for perspective)
 int mx=0,my=0;      //  Mouse coordinates
-double off=0;       //  Z offset
+//double off=0;     //  Z offset
+offset off={0,0,0}; // xyz offset
 double asp=1;       //  Aspect ratio
 double dim=1.5;     //  Size of world
-int Nskel=1;        //  Number of skeletons
 int kol[2]={0,0};   //  Color
 int mode[2]={0,0};  //  Display mode
 int rev=0;          //  Reverse draw order
 int scale=0;        //  Adjust scale
-vbo_t skel[2];      //  Object display list
+unique_ptr<Skeleton> skel = nullptr; 
+
+//int Nskel=1;        //  Number of skeletons/ specific plys
+//int draw_skel = 0;  // draw skeleton vs specific ply
+//vbo_t skel[2];      //  Object display list
 
 //
 //  Draw skeleton
 //
-void skeleton(int k)
-{
-   glPushMatrix();
-   if (scale) glScalef(1/skel[k].dim,1/skel[k].dim,1/skel[k].dim);
-   float color[4][4] = {{1,1,1,1},{1,0,0,1},{0,1,0,1},{0,0,1,1}};
-   if (mode[k]==0)
-   {
-      glColor4fv(color[kol[k]]);
-      DrawModel(skel[k]);
-   }
-   else if (mode[k]==1)
-   {
-      glEnable(GL_POLYGON_OFFSET_FILL);
-      glPolygonOffset(1,1);
-      glColorMask(0,0,0,0);
-      DrawModel(skel[k]);
-      glDisable(GL_POLYGON_OFFSET_FILL);
-      glColorMask(1,1,1,1);
-      glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-      glColor4fv(color[kol[k]]);
-      DrawModel(skel[k]);
-      glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-   }
-   else
-   {
-      glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-      glColor4fv(color[kol[k]]);
-      DrawModel(skel[k]);
-      glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-   }
-   glPopMatrix();
-}
+// void skeleton(int k)
+// {
+//    glPushMatrix();
+//    if (scale) glScalef(1/skel[k].dim,1/skel[k].dim,1/skel[k].dim);
+//    float color[4][4] = {{1,1,1,1},{1,0,0,1},{0,1,0,1},{0,0,1,1}};
+//    if (mode[k]==0)
+//    {
+//       glColor4fv(color[kol[k]]);
+//       DrawModel(skel[k]);
+//    }
+//    else if (mode[k]==1)
+//    {
+//       glEnable(GL_POLYGON_OFFSET_FILL);
+//       glPolygonOffset(1,1);
+//       glColorMask(0,0,0,0);
+//       DrawModel(skel[k]);
+//       glDisable(GL_POLYGON_OFFSET_FILL);
+//       glColorMask(1,1,1,1);
+//       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+//       glColor4fv(color[kol[k]]);
+//       DrawModel(skel[k]);
+//       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+//    }
+//    else
+//    {
+//       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+//       glColor4fv(color[kol[k]]);
+//       DrawModel(skel[k]);
+//       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+//    }
+//    glPopMatrix();
+// }
 
 /*
  *  OpenGL (GLUT) calls this routine to display the scene
@@ -124,21 +128,10 @@ void display()
    }
 
    //  Draw the model
-   glPushMatrix();
-   glTranslated(0,off,0);
-   //  Draw skeleton
-   if (Nskel==1)
-      skeleton(0);
-   else if (rev)
-   {
-      skeleton(1);
-      skeleton(0);
-   }
-   else
-   {
-      skeleton(0);
-      skeleton(1);
-   }
+   //glPushMatrix();
+   skel->drawSkeleton();
+   //glPopMatrix();
+   ErrCheck("skeleton");
 
    //  Flush skeleton and read pixel color and depth
    glFlush();
@@ -153,9 +146,6 @@ void display()
    glGetDoublev(GL_MODELVIEW_MATRIX,MV);
    glGetIntegerv(GL_VIEWPORT,VP);
    gluUnProject(mx,my,mz,MV,PRJ,VP,&X,&Y,&Z);
-
-   //  Reset transform
-   glPopMatrix();
 
    //  Draw axes - no lighting from here on
    glDisable(GL_LIGHTING);
@@ -179,6 +169,7 @@ void display()
       glRasterPos3f(0,0,f);
       Print("Z");
    }
+
    //  Display parameters
    glWindowPos2i(5,5);
    Print("Angle=%d,%d  Dim=%.1f Projection=%s",
@@ -243,42 +234,42 @@ void key(unsigned char ch,int x,int y)
    else if (ch == 'a' || ch == 'A')
       axes = 1-axes;
    //  Offset
-   else if (ch == '-')
-      off -= 0.05;
-   else if (ch == '+')
-      off += 0.05;
+   // else if (ch == '-')
+   //    off -= 0.05;
+   // else if (ch == '+')
+   //    off += 0.05;
    //  Reproject
    Project(proj?fov:0,asp,dim);
    //  Tell GLUT it is necessary to redisplay the scene
    glutPostRedisplay();
 }
 
-void menu(int m)
-{
-   int model = (m/10)%10;
-   //  Toggle light
-   if (m==1)
-      light = !light;
-   //  Toggle projection
-   else if (m==2)
-   {
-      proj = !proj;
-      Project(proj?fov:0,asp,dim);
-   }
-   //  Swap skeletons
-   else if (m==3)
-      rev = !rev;
-   //  Rescale
-   else if (m==4)
-      scale = !scale;
-   //  Mode
-   else if (m/100==1)
-      mode[model] = m%10;
-   //  Color
-   else if (m/100==2)
-      kol[model] = m%10;
-   glutPostRedisplay();
-}
+// void menu(int m)
+// {
+//    int model = (m/10)%10;
+//    //  Toggle light
+//    if (m==1)
+//       light = !light;
+//    //  Toggle projection
+//    else if (m==2)
+//    {
+//       proj = !proj;
+//       Project(proj?fov:0,asp,dim);
+//    }
+//    //  Swap skeletons
+//    else if (m==3)
+//       rev = !rev;
+//    //  Rescale
+//    else if (m==4)
+//       scale = !scale;
+//    //  Mode
+//    else if (m/100==1)
+//       mode[model] = m%10;
+//    //  Color
+//    else if (m/100==2)
+//       kol[model] = m%10;
+//    glutPostRedisplay();
+// }
 
 /*
  *  Mouse coordinates
@@ -303,6 +294,13 @@ void reshape(int width,int height)
    Project(proj?fov:0,asp,dim);
 }
 
+// clean up dynamically allocated memory
+void onExit()
+{
+   cout << "EXIT\n";
+   skel.reset();
+}
+
 /*
  *  Start up GLUT and tell it what to do
  */
@@ -310,7 +308,7 @@ int main(int argc,char* argv[])
 {
    //  Initialize GLUT
    glutInit(&argc,argv);
-   if (argc!=2 && argc!=3) Fatal("Usage: %s <model>\n",argv[0]);
+   if (argc != 1) Fatal("Usage: %s\n",argv[0]);
    //  Request double buffered, true color window with Z buffering at 600x600
    glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
    glutInitWindowSize(600,600);
@@ -325,39 +323,11 @@ int main(int argc,char* argv[])
    glutSpecialFunc(special);
    glutKeyboardFunc(key);
    glutPassiveMotionFunc(motion);
-   //  Load skeletons
-   skel[0] = LoadModel(argv[1]);
-   if (argc==3)
-   {
-      skel[1] = LoadModel(argv[2]);
-      Nskel = 2;
-   }
-   //  Set menus
-   int menuid[2];
-   for (int k=0;k<Nskel;k++)
-   {
-      // Mode Setting
-      std::string mode[] = {"Solid","WireHidden","Wireframe"};
-      int modid = glutCreateMenu(menu);
-      for (int i=0;i<3;i++)
-         glutAddMenuEntry(toCStr(mode[i]),100+10*k+i);
-      // Color setting
-      std::string color[] = {"white","red","green","blue"};
-      int colid = glutCreateMenu(menu);
-      for (int i=0;i<4;i++)
-         glutAddMenuEntry(toCStr(color[i]),200+10*k+i);
-      menuid[k] = glutCreateMenu(menu);
-      glutAddSubMenu("Mode",modid);
-      glutAddSubMenu("Color",colid);
-   }
-   glutCreateMenu(menu);
-   glutAddMenuEntry("Toggle lighting",1);
-   glutAddMenuEntry("Toggle projection",2);
-   if (Nskel>1) glutAddMenuEntry("Swap draw order",3);
-   glutAddMenuEntry("Rescale",4);
-   for (int k=0;k<Nskel;k++)
-      glutAddSubMenu(argv[k+1],menuid[k]);
-   glutAttachMenu(GLUT_RIGHT_BUTTON);
+   atexit(onExit);
+
+   Skeleton * new_skel = new Skeleton();
+   skel.reset(new_skel);
+   new_skel = nullptr;
 
    //  Pass control to GLUT so it can interact with the user
    ErrCheck("init");

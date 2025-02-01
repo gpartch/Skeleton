@@ -16,7 +16,7 @@ Skeleton::Skeleton()
 }
 Skeleton::~Skeleton()
 {
-    for(int i = 0; i < NUM_BONES; i++) {delete bones[i];}
+    for(int i = 0; i < NUM_BONES; i++) {bones[i].reset();}
 }
 
 //-------------------------------------------------------------------
@@ -25,37 +25,51 @@ vbo_t Skeleton::readBoneFile(string file_name)
 {
     
     // If a separate file location is specified in bones_adr, append to the start of file location path
-    string bone_file_path = str2bool(bones_adr) ? (bones_adr + "/" + file_name) : ("./" + file_name);
+    string bone_file_path = bones_adr!="" ? (bones_adr + "/" + file_name) : ("./" + file_name);
     // generate a new VBO for object
+    // cout << "Reading bone from " << bone_file_path << "\n";
+    // cout << "Running LoadModel(" << bone_file_path << ")\n";
     vbo_t new_vbo = LoadModel(toCStr(bone_file_path));
+    // cout << "\nVBO in readBoneFile:\n";
+    // printVBO(new_vbo);
     return new_vbo;
 }
-bone* Skeleton::newBone(int idx)
+shared_ptr<bone> Skeleton::newBone(int idx)
 {
     if(idx >= NUM_BONES || idx < 0) Fatal("invalid bone index in newBone: %d\n",idx);
     // get VBO for bone
     vbo_t vbo = readBoneFile(bones_f[idx]);
+    // cout << "\nVBO in newBone:\n";
+    // printVBO(vbo);
     // get length of bone
-    unsigned int len = bones_l[idx];
+    double len = bones_l[idx];
     // get bone char signifier
     char ch = 'A' + idx;
     // get angles for degrees of motion
     angles ang = bones_ang[idx];
     // get bone xyz offset
     offset off = bones_off[idx]; 
+    // get bone name
+    string name = bones_n[idx];
 
-    bone * new_bone = new bone{vbo,len,ch,ang,off};
-    bones[idx] = new_bone;
+    shared_ptr<bone> new_bone(new bone{vbo,len,ch,ang,off,name});
+    return new_bone;
 }
 void Skeleton::initBoneAdj()
 {
+    // adjacency information is stored as a vector of int indices corresponding to elements in bones array
     for(int i = 0; i < NUM_BONES; i++)
     {
-        // get length of adjacency list for the current bone in bones_adj
-        int len = bones_adj.at(i).size();
+        shared_ptr<bone> b = bones[i];
+        // get adjacency list
+        vector<int> adj_list = bones_adj.at(i);
+        // get length of adjacency list
+        int len = adj_list.size();
         for(int j = 0; j < len; j++)
         {
-
+            // get adj bone pointer using int index stored in adj list 'a'
+            shared_ptr<bone> adj_bone = bones[adj_list.at(j)];
+            b->adj.push_back(adj_bone);
         }
     }
 }
@@ -66,9 +80,28 @@ void Skeleton::resetAng() // reset all bone angles
 {
     for(int i = 0; i < NUM_BONES; i++) {updateAng(i,0,0);}
 }
-void Skeleton::printBones() // print bones information to terminal
+const void Skeleton::printBone(int idx, bool v)
 {
-
+    cout << "------------------------------\n";
+    bone b = *bones[idx];
+    cout << "[" << idx << "|" << (char)(65+idx) << "] " << bones_n[idx] << "\n" <<
+    "length: " << b.len << "\n" <<
+    "angles: th=" << b.ang.th << " ph=" << b.ang.ph << "\n" << 
+    "offset: (" << b.off.x << "," << b.off.y << "," << b.off.z << ")\n" << 
+    "adjacent bones:";
+    int len = b.adj.size();
+    for(int j = 0; j < len; j++)
+    {
+        string adj_name = b.adj.at(j)->name;
+        cout << " [" << adj_name << "]";
+    }
+    cout << "\n";
+    if(v == true) {printVBO(b.vbo,1);}
+    else {printVBO(b.vbo,0);}
+}
+const void Skeleton::printBones(bool v) // print bones information to terminal
+{
+    for(int i = 0; i < NUM_BONES; i++) {printBone(i,v);}
 }
 void Skeleton::updateAng(int idx, int th, int ph) // update bone motion angles
 {
@@ -77,19 +110,75 @@ void Skeleton::updateAng(int idx, int th, int ph) // update bone motion angles
 }
 void Skeleton::drawSkeleton() // draw the complete skeleton
 {
-
+    printBones(0);
+    // cout << "drawing skeleton...\n";
+    // printBones();
+    //printBone(0);
+    // Torso
+    //glPushMatrix();
+    //drawLeg(13,1,'N');
+    //glPopMatrix;
 }
 void Skeleton::drawBone(int idx) // draw bone at origin
 {
-
+    vbo_t vbo = bones[idx]->vbo;
+    DrawModel(vbo);
 }
-void Skeleton::drawLeg(int idx, float i, char ch, angles ang_l[5]) // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
+void Skeleton::drawLeg(int idx, float i, char ch) // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
 {
+    const bone femur = *bones[idx];
+    const bone tibfib = *bones[idx+1];
+    const bone talus = *bones[idx+2];
+    const bone foot = *bones[idx+3];
+    const bone toes = *bones[idx+4];
+    cout << "building leg [" << idx << "-" << idx+4 << "]\n";
 
+    //glPushMatrix();
+        // // femur
+        // glTranslated(femur.off.x,femur.off.y,femur.off.z);
+        // drawLabel(ch);
+        // glRotated(femur.ang.ph,-1,0,0);
+        // glRotated(femur.ang.th,0,0,i);
+        // drawBone(idx);
+        // glPushMatrix();
+        //     // tibia/fibula
+        //     // move tibfib+talus+foot+toes down the y axis the length of the femur
+        //     glTranslated(tibfib.off.x,tibfib.off.y-femur.len,tibfib.off.z);
+        //     drawLabel(ch+1);
+        //     glRotated(femur.ang.ph,-1,0,0);
+        //     drawBone(idx+1);
+        //     glPushMatrix();
+        //         // talus
+        //         //move talus+foot+toes down the y axis the length of the tibia/fibula
+        //         glTranslated(talus.off.x,talus.off.y-tibfib.len,talus.off.z);
+        //         drawLabel(ch+2);
+        //         glRotated(talus.ang.ph,0,1,0);
+        //         glRotated(talus.ang.th,-1,0,0);
+        //         drawBone(idx+2);
+        //         glPushMatrix();
+        //             // foot
+        //             // move foot+toes forward along z axis the length of talus
+        //             glTranslated(foot.off.x,foot.off.y,foot.off.z+talus.len);
+        //             drawLabel(ch+3);
+        //             drawBone(idx+3);
+        //             glPushMatrix();
+        //                 // toes
+        //                 // move toes forward along z axis the length of foot
+        //                 glTranslated(toes.off.x,toes.off.y,toes.off.z+foot.len);
+        //                 drawLabel(ch+4);
+        //                 glRotated(toes.ang.ph,-1,0,0);
+        //                 DrawModel(toes.vbo);
+        //             glPopMatrix();
+        //         glPopMatrix();
+        //     glPopMatrix();
+        // glPopMatrix();
+    //glPopMatrix;
 }
-void Skeleton::drawArm(int idx, float i, char ch, angles ang_a[5]) // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
+void Skeleton::drawArm(int idx, float i, char ch) // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
 {
+    // glPushMatrix();
 
+    // glPopMatrix;
 }
 void Skeleton::drawLabel(char ch) // draw char signifier labels at each bone
 {
