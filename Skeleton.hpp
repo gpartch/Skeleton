@@ -18,7 +18,7 @@ char * toCStr(string str); // defined in file cstr.cpp
 
 
 struct angles{ int th,ph; }; // angles/degrees of freedom for bone
-struct offset { int x,y,z; }; // offset to the position of a bone
+struct offset { double x,y,z; }; // offset to the position of a bone
 struct bone
 {
    vbo_t vbo; // vbo for the bone
@@ -41,6 +41,7 @@ class Skeleton{
       void updateAng(int idx, int th, int ph); // update bone motion angles
       void drawSkeleton(); // draw the complete skeleton
       void drawBone(int idx); // draw bone at origin
+      void drawBone(bone b); // draw bone at origin
       void drawLeg(int idx, float i, char ch); // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
       void drawArm(int idx, float i, char ch); // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
       void drawLabel(char ch); // draw char signifier labels at each bone
@@ -137,16 +138,16 @@ class Skeleton{
          9,    // 11.L right lower arm (radius)
          5.5,  // 12.M right hand
 
-         17.5, // 13.N left upper leg
-         15.5, // 14.O left lower leg
-         2,    // 15.P left ball of foot
-         4,    // 16.Q left foot
+         16.5, // 13.N left upper leg
+         16.25, // 14.O left lower leg
+         2.25,    // 15.P left ball of foot
+         7.5,    // 16.Q left foot
          3,    // 17.R left toes
 
-         17.5, // 18.S right upper leg
-         15.5, // 19.T right lower leg
-         2,    // 20.U right ball of foot
-         4,    // 21.V right foot
+         16.5, // 18.S right upper leg
+         16.25, // 19.T right lower leg
+         2.25,    // 20.U right ball of foot
+         7.5,    // 21.V right foot
          3     // 22.W right toes
       };
       // xyz offset for bones
@@ -168,10 +169,10 @@ class Skeleton{
          {0,0,0}, // 11.L right lower arm (radius)
          {0,0,0}, // 12.M right hand
 
-         {0,0,0}, // 13.N left upper leg
+         {10,0,0}, // 13.N left upper leg
          {0,0,0}, // 14.O left lower leg
          {0,0,0}, // 15.P left ball of foot
-         {0,0,0}, // 16.Q left foot
+         {0,0,-1.75}, // 16.Q left foot
          {0,0,0}, // 17.R left toes
 
          {0,0,0}, // 18.S right upper leg
