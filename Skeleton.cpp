@@ -110,19 +110,29 @@ void Skeleton::updateAng(int idx, int th, int ph) // update bone motion angles
 }
 void Skeleton::drawSkeleton() // draw the complete skeleton
 {
-    printBones(0);
+    printBone(13,0);
     // cout << "drawing skeleton...\n";
-    // printBones();
-    //printBone(0);
     // Torso
     //glPushMatrix();
-    //drawLeg(13,1,'N');
+    drawLeg(13,-1,'N');
     //glPopMatrix;
 }
 void Skeleton::drawBone(int idx) // draw bone at origin
 {
+    cout << "drawing " << bones[idx]->name << "\n";
     vbo_t vbo = bones[idx]->vbo;
     DrawModel(vbo);
+}
+void Skeleton::drawBone(bone b) // draw bone at origin
+{
+    glPushMatrix();
+        // adjust to scale to reasonable size + face along the +z axis
+        glRotated(-90,0,1,0);
+        glScaled(40,40,40);
+        cout << "drawing " << b.name << "\n";
+        vbo_t vbo = b.vbo;
+        DrawModel(vbo);
+    glPopMatrix();
 }
 void Skeleton::drawLeg(int idx, float i, char ch) // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
 {
@@ -133,46 +143,47 @@ void Skeleton::drawLeg(int idx, float i, char ch) // draw leg: i - +/- axis rota
     const bone toes = *bones[idx+4];
     cout << "building leg [" << idx << "-" << idx+4 << "]\n";
 
-    //glPushMatrix();
-        // // femur
-        // glTranslated(femur.off.x,femur.off.y,femur.off.z);
-        // drawLabel(ch);
-        // glRotated(femur.ang.ph,-1,0,0);
-        // glRotated(femur.ang.th,0,0,i);
-        // drawBone(idx);
-        // glPushMatrix();
-        //     // tibia/fibula
-        //     // move tibfib+talus+foot+toes down the y axis the length of the femur
-        //     glTranslated(tibfib.off.x,tibfib.off.y-femur.len,tibfib.off.z);
-        //     drawLabel(ch+1);
-        //     glRotated(femur.ang.ph,-1,0,0);
-        //     drawBone(idx+1);
-        //     glPushMatrix();
-        //         // talus
-        //         //move talus+foot+toes down the y axis the length of the tibia/fibula
-        //         glTranslated(talus.off.x,talus.off.y-tibfib.len,talus.off.z);
-        //         drawLabel(ch+2);
-        //         glRotated(talus.ang.ph,0,1,0);
-        //         glRotated(talus.ang.th,-1,0,0);
-        //         drawBone(idx+2);
-        //         glPushMatrix();
-        //             // foot
-        //             // move foot+toes forward along z axis the length of talus
-        //             glTranslated(foot.off.x,foot.off.y,foot.off.z+talus.len);
-        //             drawLabel(ch+3);
-        //             drawBone(idx+3);
-        //             glPushMatrix();
-        //                 // toes
-        //                 // move toes forward along z axis the length of foot
-        //                 glTranslated(toes.off.x,toes.off.y,toes.off.z+foot.len);
-        //                 drawLabel(ch+4);
-        //                 glRotated(toes.ang.ph,-1,0,0);
-        //                 DrawModel(toes.vbo);
-        //             glPopMatrix();
-        //         glPopMatrix();
-        //     glPopMatrix();
-        // glPopMatrix();
-    //glPopMatrix;
+    glPushMatrix();
+    // move complete leg
+        // femur
+        glTranslated(femur.off.x,femur.off.y,femur.off.z);
+        drawLabel(ch);
+        glRotated(femur.ang.ph,-1,0,0);
+        glRotated(femur.ang.th,0,0,i);
+        drawBone(femur);
+        glPushMatrix();
+            // tibia/fibula
+            // move tibfib+talus+foot+toes down the y axis the length of the femur
+            glTranslated(tibfib.off.x,tibfib.off.y-femur.len,tibfib.off.z);
+            drawLabel(ch+1);
+            glRotated(femur.ang.ph,-1,0,0);
+            drawBone(tibfib);
+            glPushMatrix();
+                // talus
+                //move talus+foot+toes down the y axis the length of the tibia/fibula
+                glTranslated(talus.off.x,talus.off.y-tibfib.len,talus.off.z);
+                drawLabel(ch+2);
+                glRotated(talus.ang.ph,0,1,0);
+                glRotated(talus.ang.th,-1,0,0);
+                drawBone(talus);
+                glPushMatrix();
+                    // foot
+                    // move foot+toes down along y axis the length of talus
+                    glTranslated(foot.off.x,foot.off.y-talus.len,foot.off.z);
+                    drawLabel(ch+3);
+                    drawBone(foot);
+                    glPushMatrix();
+                        // toes
+                        // move toes forward along z axis the length of foot
+                        glTranslated(toes.off.x,toes.off.y,toes.off.z+foot.len);
+                        drawLabel(ch+4);
+                        glRotated(toes.ang.ph,-1,0,0);
+                        drawBone(toes);
+                    glPopMatrix();
+                glPopMatrix();
+            glPopMatrix();
+        glPopMatrix();
+    glPopMatrix();
 }
 void Skeleton::drawArm(int idx, float i, char ch) // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
 {
