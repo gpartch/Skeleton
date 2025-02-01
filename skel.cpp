@@ -24,12 +24,13 @@ int mx=0,my=0;      //  Mouse coordinates
 //double off=0;     //  Z offset
 offset off={0,0,0}; // xyz offset
 double asp=1;       //  Aspect ratio
-double dim=1.5;     //  Size of world
+double dim=60;     //  Size of world
 int kol[2]={0,0};   //  Color
 int mode[2]={0,0};  //  Display mode
 int rev=0;          //  Reverse draw order
 int scale=0;        //  Adjust scale
 unique_ptr<Skeleton> skel = nullptr; 
+int gx=0,gy=0,gz=0;
 
 //int Nskel=1;        //  Number of skeletons/ specific plys
 //int draw_skel = 0;  // draw skeleton vs specific ply
@@ -76,6 +77,7 @@ unique_ptr<Skeleton> skel = nullptr;
  */
 void display()
 {
+   
    glClearColor(0,0,0,0);
    //  Erase the window and the depth buffer
    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -128,9 +130,10 @@ void display()
    }
 
    //  Draw the model
-   //glPushMatrix();
+   glPushMatrix();
+   glTranslated(gx,gy,gz);
    skel->drawSkeleton();
-   //glPopMatrix();
+   glPopMatrix();
    ErrCheck("skeleton");
 
    //  Flush skeleton and read pixel color and depth
@@ -152,12 +155,12 @@ void display()
    glColor3f(1,1,1);
    if (axes)
    {
-      float f=0.3;
+      float f=30;
       glBegin(GL_LINES);
       glVertex3f(0,0,0);
       glVertex3f(f,0,0);
       glVertex3f(0,0,0);
-      glVertex3f(0,1,0);
+      glVertex3f(0,-f,0);
       glVertex3f(0,0,0);
       glVertex3f(0,0,f);
       glEnd();
@@ -174,6 +177,7 @@ void display()
    glWindowPos2i(5,5);
    Print("Angle=%d,%d  Dim=%.1f Projection=%s",
      th,ph,dim,proj?"Perpective":"Orthogonal");
+   Print("x:%d y:%d z:%d",gx,gy,gz);
    //  Show pixel location and color unless it is the background
    if (mc[0]+mc[1]+mc[2]+mc[3])
    {
@@ -206,10 +210,10 @@ void special(int key,int x,int y)
       ph -= 5;
    //  PageUp key - increase dim
    else if (key == GLUT_KEY_PAGE_DOWN)
-      dim += 0.1;
+      dim += 5;
    //  PageDown key - decrease dim
    else if (key == GLUT_KEY_PAGE_UP && dim>0.2)
-      dim -= 0.1;
+      dim -= 5;
    //  Keep angles to +/-360 degrees
    th %= 360;
    ph %= 360;
@@ -231,8 +235,16 @@ void key(unsigned char ch,int x,int y)
    else if (ch == '0')
       th = ph = 0;
    //  Toggle axes
-   else if (ch == 'a' || ch == 'A')
+   else if (ch == 'x' || ch == 'X')
       axes = 1-axes;
+   else if (ch == 'a' || ch == 'A')
+      gx -= 5;
+   else if (ch == 'd' || ch == 'D')
+      gx += 5;
+   else if (ch == 'w' || ch == 'W')
+      gy += 5;
+   else if (ch == 's' || ch == 'S')
+      gy -= 5;
    //  Offset
    // else if (ch == '-')
    //    off -= 0.05;
