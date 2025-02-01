@@ -42,7 +42,7 @@ shared_ptr<bone> Skeleton::newBone(int idx)
     // cout << "\nVBO in newBone:\n";
     // printVBO(vbo);
     // get length of bone
-    double len = bones_l[idx];
+    //double len = bones_l[idx];
     // get bone char signifier
     char ch = 'A' + idx;
     // get angles for degrees of motion
@@ -52,7 +52,7 @@ shared_ptr<bone> Skeleton::newBone(int idx)
     // get bone name
     string name = bones_n[idx];
 
-    shared_ptr<bone> new_bone(new bone{vbo,len,ch,ang,off,name});
+    shared_ptr<bone> new_bone(new bone{vbo,ch,ang,off,name});
     return new_bone;
 }
 void Skeleton::initBoneAdj()
@@ -85,7 +85,6 @@ const void Skeleton::printBone(int idx, bool v)
     cout << "------------------------------\n";
     bone b = *bones[idx];
     cout << "[" << idx << "|" << (char)(65+idx) << "] " << bones_n[idx] << "\n" <<
-    "length: " << b.len << "\n" <<
     "angles: th=" << b.ang.th << " ph=" << b.ang.ph << "\n" << 
     "offset: (" << b.off.x << "," << b.off.y << "," << b.off.z << ")\n" << 
     "adjacent bones:";
@@ -110,12 +109,38 @@ void Skeleton::updateAng(int idx, int th, int ph) // update bone motion angles
 }
 void Skeleton::drawSkeleton() // draw the complete skeleton
 {
-    printBone(13,0);
-    // cout << "drawing skeleton...\n";
-    // Torso
-    //glPushMatrix();
-    drawLeg(13,-1,'N');
-    //glPopMatrix;
+    const bone pelvis = *bones[0];
+    const bone torso = *bones[1];
+    const bone head = *bones[2];
+
+    // Draw upper body
+    glPushMatrix();
+        // Pelvis
+        drawBone(pelvis);
+        drawLabel(pelvis.ch);
+        glPushMatrix();
+            // Torso
+            glTranslated(torso.off.x,torso.off.y,torso.off.z);
+            drawLabel(torso.ch);
+            glRotated(torso.ang.ph,1,0,0);
+            drawBone(torso);
+            glPushMatrix();
+                // Arms
+                drawArm(3,-1);
+                drawArm(8,1);
+            glPopMatrix();
+            glPushMatrix();
+                // Head
+                glTranslated(head.off.x,head.off.y,head.off.z);
+                drawLabel(head.ch);
+                glRotated(head.ang.ph,1,0,0);
+                glRotated(head.ang.th,0,1,0);
+                drawBone(head);
+            glPopMatrix();
+        glPopMatrix();
+    glPopMatrix();
+    drawLeg(13,-1);
+    drawLeg(18,1);
 }
 void Skeleton::drawBone(int idx) // draw bone at origin
 {
@@ -134,49 +159,48 @@ void Skeleton::drawBone(bone b) // draw bone at origin
         DrawModel(vbo);
     glPopMatrix();
 }
-void Skeleton::drawLeg(int idx, float i, char ch) // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
+void Skeleton::drawLeg(int idx, float i) // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
 {
     const bone femur = *bones[idx];
     const bone tibfib = *bones[idx+1];
     const bone talus = *bones[idx+2];
     const bone foot = *bones[idx+3];
     const bone toes = *bones[idx+4];
-    cout << "building leg [" << idx << "-" << idx+4 << "]\n";
 
     glPushMatrix();
     // move complete leg
         // femur
         glTranslated(femur.off.x,femur.off.y,femur.off.z);
-        drawLabel(ch);
+        drawLabel(femur.ch);
         glRotated(femur.ang.ph,-1,0,0);
         glRotated(femur.ang.th,0,0,i);
         drawBone(femur);
         glPushMatrix();
             // tibia/fibula
             // move tibfib+talus+foot+toes down the y axis the length of the femur
-            glTranslated(tibfib.off.x,tibfib.off.y-femur.len,tibfib.off.z);
-            drawLabel(ch+1);
+            glTranslated(tibfib.off.x,tibfib.off.y,tibfib.off.z);
+            drawLabel(tibfib.ch);
             glRotated(femur.ang.ph,-1,0,0);
             drawBone(tibfib);
             glPushMatrix();
                 // talus
                 //move talus+foot+toes down the y axis the length of the tibia/fibula
-                glTranslated(talus.off.x,talus.off.y-tibfib.len,talus.off.z);
-                drawLabel(ch+2);
+                glTranslated(talus.off.x,talus.off.y,talus.off.z);
+                drawLabel(talus.ch);
                 glRotated(talus.ang.ph,0,1,0);
                 glRotated(talus.ang.th,-1,0,0);
                 drawBone(talus);
                 glPushMatrix();
                     // foot
                     // move foot+toes down along y axis the length of talus
-                    glTranslated(foot.off.x,foot.off.y-talus.len,foot.off.z);
-                    drawLabel(ch+3);
+                    glTranslated(foot.off.x,foot.off.y,foot.off.z);
+                    drawLabel(foot.ch);
                     drawBone(foot);
                     glPushMatrix();
                         // toes
                         // move toes forward along z axis the length of foot
-                        glTranslated(toes.off.x,toes.off.y,toes.off.z+foot.len);
-                        drawLabel(ch+4);
+                        glTranslated(toes.off.x,toes.off.y,toes.off.z);
+                        drawLabel(toes.ch);
                         glRotated(toes.ang.ph,-1,0,0);
                         drawBone(toes);
                     glPopMatrix();
@@ -185,13 +209,57 @@ void Skeleton::drawLeg(int idx, float i, char ch) // draw leg: i - +/- axis rota
         glPopMatrix();
     glPopMatrix();
 }
-void Skeleton::drawArm(int idx, float i, char ch) // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
+void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
 {
-    // glPushMatrix();
+    const bone shoulder = *bones[idx];
+    const bone humerus = *bones[idx+1];
+    const bone ulna = *bones[idx+2];
+    const bone radius = *bones[idx+3];
+    const bone hand = *bones[idx+4];
 
-    // glPopMatrix;
+    glPushMatrix();
+        // shoulder blade
+        glPushMatrix();
+            glTranslated(shoulder.off.x,shoulder.off.y,shoulder.off.z);
+            drawBone(shoulder);
+        glPopMatrix();
+        // upper arm
+        glTranslated(humerus.off.x,humerus.off.y,humerus.off.z);
+        drawLabel(humerus.ch);
+        glRotated(humerus.ang.ph,1,0,0);
+        glRotated(humerus.ang.th,0,0,i);
+        drawBone(humerus);
+        
+
+        glPushMatrix();
+            // lower arm - radius + ulna
+            // radius
+            glPushMatrix();
+                glTranslated(radius.off.x,radius.off.y,radius.off.z);
+                glRotated(radius.ang.ph,1,0,0);
+                drawBone(radius);
+            glPopMatrix();
+            // ulna
+            glPushMatrix();
+                glTranslated(ulna.off.x,ulna.off.y,ulna.off.z);
+                drawLabel(ulna.ch);
+                glRotated(ulna.ang.ph,1,0,0);
+                drawBone(ulna);
+                glPushMatrix();
+                    // hand
+                    glTranslated(hand.off.x,hand.off.y,hand.off.z);
+                    drawLabel(hand.ch);
+                    glRotated(hand.ang.ph,1,0,0);
+                    glRotated(hand.ang.th,0,i,0);
+                    drawBone(hand);
+                glPopMatrix();    
+            glPopMatrix();  
+        glPopMatrix();
+    glPopMatrix();
 }
 void Skeleton::drawLabel(char ch) // draw char signifier labels at each bone
 {
-
+    glColor3f(1,1,1);
+    glRasterPos3d(0,0,0);
+    Print("%c",ch);
 }
