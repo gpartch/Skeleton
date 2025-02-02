@@ -38,19 +38,22 @@ class Skeleton{
       void resetAng(); // reset all bone angles
       const void printBones(bool v); // print bones information to terminal - set bool v to true for verbose
       const void printBone(int idx, bool v);
-      void updateAng(int idx, int th, int ph); // update bone motion angles
+      void setAng(int idx, int th, int ph); // increment bone motion angles
       void drawSkeleton(); // draw the complete skeleton
       void drawBone(int idx); // draw bone at origin
       void drawBone(bone b); // draw bone at origin
       void drawLeg(int idx, float i); // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
       void drawArm(int idx, float i); // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
       void drawLabel(char ch); // draw char signifier labels at each bone
+      void setLabel(char ch); // set currently selected label
 
    private:
       vbo_t readBoneFile(string); // read data from bone file and create vbo
       shared_ptr<bone> newBone(int); // retrieve data for and create new bone
       void initBoneAdj(); // initialize bone adjacencies
       
+      // current selected label
+      char selected_label = -1;
       // number of bones
       const static int NUM_BONES = 23;
       // array of pointers to bones
@@ -119,37 +122,6 @@ class Skeleton{
          "right foot",
          "right toes"
       };
-      // length of bones in inches TODO: *LENGTHS ARE ESTIMATED, FIX LATER*
-      // const double bones_l[NUM_BONES]
-      // {
-      //    3,    // 0.A pelvis/ tailbone/ lower spine
-      //    17,   // 1.B torso/ thorax/ mid-spine
-      //    10,   // 2.C head/ neck/ upper spine
-
-      //    0,    // 3.D left shoulder blade
-      //    11.5, // 4.E left upper arm
-      //    9,    // 5.F left lower arm (ulna)
-      //    9,    // 6.G left lower arm (radius)
-      //    5.5,  // 7.H left hand
-
-      //    0,    // 8.I right shoulder blade
-      //    11.5, // 9.J right upper arm
-      //    9,    // 10.K right lower arm (ulna)
-      //    9,    // 11.L right lower arm (radius)
-      //    5.5,  // 12.M right hand
-
-      //    16.5, // 13.N left upper leg
-      //    16.25, // 14.O left lower leg
-      //    2.25,    // 15.P left ball of foot
-      //    7.5,    // 16.Q left foot
-      //    3,    // 17.R left toes
-
-      //    16.5, // 18.S right upper leg
-      //    16.25, // 19.T right lower leg
-      //    2.25,    // 20.U right ball of foot
-      //    7.5,    // 21.V right foot
-      //    3     // 22.W right toes
-      // };
       // xyz offset for bones - translation relative to parent limb
       // eg - how does this limb need to be moved in x,y,z directions relative to parent limb
       const offset bones_off[NUM_BONES]
@@ -159,16 +131,16 @@ class Skeleton{
          {0,-16,2}, // 2.C head/ neck/ upper spine
 
          {6,0,1}, // 3.D left shoulder blade
-         {-6,-1.25,.5}, // 4.E left upper arm
+         {6,-1.25,.5}, // 4.E left upper arm
          {-.5,-12,.5}, // 5.F left lower arm (ulna)
          {-.5,-12,.5}, // 6.G left lower arm (radius)
-         {1.5,-9.5,.9}, // 7.H left hand
+         {1.5,-9.75,.75}, // 7.H left hand
 
          {-6,0,1}, // 8.I right shoulder blade
-         {6,-1.25,.5}, // 9.J right upper arm
+         {-6,-1.25,.5}, // 9.J right upper arm
          {.5,-12,.5}, // 10.K right lower arm (ulna)
          {.5,-12,.5}, // 11.L right lower arm (radius)
-         {-1.5,-9.5,.9}, // 12.M right hand
+         {-1.5,-9.75,.75}, // 12.M right hand
 
          {3,-3.25,-2.25}, // 13.N left upper leg
          {0,-16.75,0}, // 14.O left lower leg
@@ -222,16 +194,16 @@ class Skeleton{
          {0,0},   // 2.C head/ neck/ upper spine
 
          {0,0},   // 3.D left shoulder blade
-         {0,0},   // 4.E left upper arm
+         {0,92},   // 4.E left upper arm
          {0,0},   // 5.F left lower arm (ulna)
-         {0,0},   // 6.G left lower arm (radius)
-         {30,0},   // 7.H left hand
+         {0,-10},   // 6.G left lower arm (radius)
+         {0,0},   // 7.H left hand
 
          {0,0},   // 8.I right shoulder blade
-         {0,0},   // 9.J right upper arm
+         {0,92},   // 9.J right upper arm
          {0,0},   // 10.K right lower arm (ulna)
-         {0,0},   // 11.L right lower arm (radius)
-         {30,0},   // 12.M right hand
+         {0,-10},   // 11.L right lower arm (radius)
+         {0,0},   // 12.M right hand
 
          {0,0},   // 13.N left upper leg
          {0,0},   // 14.O left lower leg

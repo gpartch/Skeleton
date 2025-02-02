@@ -21,56 +21,17 @@ int th=0;           //  Azimuth of view angle
 int ph=0;           //  Elevation of view angle
 int fov=55;         //  Field of view (for perspective)
 int mx=0,my=0;      //  Mouse coordinates
-//double off=0;     //  Z offset
+int move=0;    //  Mouse move
 offset off={0,0,0}; // xyz offset
 double asp=1;       //  Aspect ratio
 double dim=60;     //  Size of world
 int kol[2]={0,0};   //  Color
 int mode[2]={0,0};  //  Display mode
+char label = 'A';
 int rev=0;          //  Reverse draw order
 int scale=0;        //  Adjust scale
 unique_ptr<Skeleton> skel = nullptr; 
 int gx=0,gy=0,gz=0;
-
-//int Nskel=1;        //  Number of skeletons/ specific plys
-//int draw_skel = 0;  // draw skeleton vs specific ply
-//vbo_t skel[2];      //  Object display list
-
-//
-//  Draw skeleton
-//
-// void skeleton(int k)
-// {
-//    glPushMatrix();
-//    if (scale) glScalef(1/skel[k].dim,1/skel[k].dim,1/skel[k].dim);
-//    float color[4][4] = {{1,1,1,1},{1,0,0,1},{0,1,0,1},{0,0,1,1}};
-//    if (mode[k]==0)
-//    {
-//       glColor4fv(color[kol[k]]);
-//       DrawModel(skel[k]);
-//    }
-//    else if (mode[k]==1)
-//    {
-//       glEnable(GL_POLYGON_OFFSET_FILL);
-//       glPolygonOffset(1,1);
-//       glColorMask(0,0,0,0);
-//       DrawModel(skel[k]);
-//       glDisable(GL_POLYGON_OFFSET_FILL);
-//       glColorMask(1,1,1,1);
-//       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-//       glColor4fv(color[kol[k]]);
-//       DrawModel(skel[k]);
-//       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-//    }
-//    else
-//    {
-//       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-//       glColor4fv(color[kol[k]]);
-//       DrawModel(skel[k]);
-//       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-//    }
-//    glPopMatrix();
-// }
 
 /*
  *  OpenGL (GLUT) calls this routine to display the scene
@@ -160,14 +121,14 @@ void display()
       glVertex3f(0,0,0);
       glVertex3f(f,0,0);
       glVertex3f(0,0,0);
-      glVertex3f(0,-f,0);
+      glVertex3f(0,f,0);
       glVertex3f(0,0,0);
       glVertex3f(0,0,f);
       glEnd();
       //  Label axes
       glRasterPos3f(f,0,0);
       Print("X");
-      glRasterPos3f(0,1,0);
+      glRasterPos3f(0,f,0);
       Print("Y");
       glRasterPos3f(0,0,f);
       Print("Z");
@@ -177,7 +138,8 @@ void display()
    glWindowPos2i(5,5);
    Print("Angle=%d,%d  Dim=%.1f Projection=%s",
      th,ph,dim,proj?"Perpective":"Orthogonal");
-   Print("x:%d y:%d z:%d",gx,gy,gz);
+   Print(" x:%d y:%d z:%d",gx,gy,gz);
+   Print(" Bone: %c",label);
    //  Show pixel location and color unless it is the background
    if (mc[0]+mc[1]+mc[2]+mc[3])
    {
@@ -198,16 +160,16 @@ void special(int key,int x,int y)
 {
    //  Right arrow key - increase angle by 5 degrees
    if (key == GLUT_KEY_RIGHT)
-      th += 5;
+      skel->setAng(label-65,5,0);
    //  Left arrow key - decrease angle by 5 degrees
    else if (key == GLUT_KEY_LEFT)
-      th -= 5;
+      skel->setAng(label-65,-5,0);
    //  Up arrow key - increase elevation by 5 degrees
    else if (key == GLUT_KEY_UP)
-      ph += 5;
+      skel->setAng(label-65,0,5);
    //  Down arrow key - decrease elevation by 5 degrees
    else if (key == GLUT_KEY_DOWN)
-      ph -= 5;
+      skel->setAng(label-65,0,-5);
    //  PageUp key - increase dim
    else if (key == GLUT_KEY_PAGE_DOWN)
       dim += 5;
@@ -229,27 +191,25 @@ void special(int key,int x,int y)
 void key(unsigned char ch,int x,int y)
 {
    //  Exit on ESC
-   if (ch == 27)
-      exit(0);
+   if (ch == 27) exit(0);
    //  Reset view angle
-   else if (ch == '0')
-      th = ph = 0;
+   else if (ch == '0') th = ph = 0;
    //  Toggle axes
-   else if (ch == 'x' || ch == 'X')
-      axes = 1-axes;
-   else if (ch == 'a' || ch == 'A')
-      gx -= 5;
-   else if (ch == 'd' || ch == 'D')
-      gx += 5;
-   else if (ch == 'w' || ch == 'W')
-      gy += 5;
-   else if (ch == 's' || ch == 'S')
-      gy -= 5;
-   //  Offset
-   // else if (ch == '-')
-   //    off -= 0.05;
-   // else if (ch == '+')
-   //    off += 0.05;
+   else if (ch == 'x' || ch == 'X') axes = 1-axes;
+   // adjust global xyz offset
+   else if (ch == '1') gx -= 5;
+   else if (ch == '2') gx += 5;
+   else if (ch == '3') gy -= 5;
+   else if (ch == '4') gy += 5;
+   else if (ch == '5') gz -= 5;
+   else if (ch == '6') gz += 5;
+   // select bone
+   else if ((ch >= 'a' && ch <= 'w') || (ch >= 'A' && ch <= 'W'))
+   {
+      skel->setLabel(toupper(ch));
+      label = toupper(ch);
+   }
+
    //  Reproject
    Project(proj?fov:0,asp,dim);
    //  Tell GLUT it is necessary to redisplay the scene
@@ -288,8 +248,34 @@ void key(unsigned char ch,int x,int y)
  */
 void motion(int x,int y)
 {
+   if (move!=1) return;
+   th += x-mx;
+   ph += y-my;
    mx = x;
-   my = glutGet(GLUT_WINDOW_HEIGHT)-y;
+   my = y;
+   glutPostRedisplay();
+}
+
+void mouse(int button, int state, int x, int y)
+{
+   //  Add a point
+   if (button==GLUT_LEFT_BUTTON && state==GLUT_DOWN)
+   {
+      move = 1;
+      mx = x;
+      my = y;
+   }
+   //  Stop move
+   else if (button==GLUT_LEFT_BUTTON && state==GLUT_UP)
+      move = 0;
+   // Wheel reports as button 3(scroll up) and button 4(scroll down)
+   else if ((button == 3) || (button == 4)) // It's a wheel event
+   {
+       // Each wheel event reports like a button click, GLUT_DOWN then GLUT_UP
+       if (state == GLUT_UP) return; // Disregard redundant GLUT_UP events
+       if(button == 3) dim -= 5;
+       else dim += 5;
+   }
    glutPostRedisplay();
 }
 
@@ -334,12 +320,14 @@ int main(int argc,char* argv[])
    glutReshapeFunc(reshape);
    glutSpecialFunc(special);
    glutKeyboardFunc(key);
-   glutPassiveMotionFunc(motion);
+   glutMotionFunc(motion);
+   glutMouseFunc(mouse);
    atexit(onExit);
 
    Skeleton * new_skel = new Skeleton();
    skel.reset(new_skel);
    new_skel = nullptr;
+   skel->setLabel('A');
 
    //  Pass control to GLUT so it can interact with the user
    ErrCheck("init");

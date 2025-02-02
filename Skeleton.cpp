@@ -27,11 +27,7 @@ vbo_t Skeleton::readBoneFile(string file_name)
     // If a separate file location is specified in bones_adr, append to the start of file location path
     string bone_file_path = bones_adr!="" ? (bones_adr + "/" + file_name) : ("./" + file_name);
     // generate a new VBO for object
-    // cout << "Reading bone from " << bone_file_path << "\n";
-    // cout << "Running LoadModel(" << bone_file_path << ")\n";
     vbo_t new_vbo = LoadModel(toCStr(bone_file_path));
-    // cout << "\nVBO in readBoneFile:\n";
-    // printVBO(new_vbo);
     return new_vbo;
 }
 shared_ptr<bone> Skeleton::newBone(int idx)
@@ -39,10 +35,6 @@ shared_ptr<bone> Skeleton::newBone(int idx)
     if(idx >= NUM_BONES || idx < 0) Fatal("invalid bone index in newBone: %d\n",idx);
     // get VBO for bone
     vbo_t vbo = readBoneFile(bones_f[idx]);
-    // cout << "\nVBO in newBone:\n";
-    // printVBO(vbo);
-    // get length of bone
-    //double len = bones_l[idx];
     // get bone char signifier
     char ch = 'A' + idx;
     // get angles for degrees of motion
@@ -78,7 +70,7 @@ void Skeleton::initBoneAdj()
 
 void Skeleton::resetAng() // reset all bone angles
 {
-    for(int i = 0; i < NUM_BONES; i++) {updateAng(i,0,0);}
+    for(int i = 0; i < NUM_BONES; i++) {bones[i]->ang.th=0; bones[i]->ang.ph=0;}
 }
 const void Skeleton::printBone(int idx, bool v)
 {
@@ -102,17 +94,21 @@ const void Skeleton::printBones(bool v) // print bones information to terminal
 {
     for(int i = 0; i < NUM_BONES; i++) {printBone(i,v);}
 }
-void Skeleton::updateAng(int idx, int th, int ph) // update bone motion angles
+void Skeleton::setAng(int idx, int th, int ph) // update bone motion angles
 {
-    bones[idx]->ang.th = th;
-    bones[idx]->ang.ph = ph;
+    bones[idx]->ang.th += th;
+    bones[idx]->ang.ph += ph;
 }
 void Skeleton::drawSkeleton() // draw the complete skeleton
 {
+    glColor3f(1,1,1);
+
     const bone pelvis = *bones[0];
     const bone torso = *bones[1];
     const bone head = *bones[2];
 
+    drawLeg(13,-1);
+    drawLeg(18,1);
     // Draw upper body
     glPushMatrix();
         // Pelvis
@@ -120,31 +116,31 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
         drawLabel(pelvis.ch);
         glPushMatrix();
             // Torso
-            glTranslated(torso.off.x,torso.off.y,torso.off.z);
-            drawLabel(torso.ch);
+            glPushMatrix();
+                glTranslated(0,5,0);
+                drawLabel(torso.ch);
+            glPopMatrix();
             glRotated(torso.ang.ph,1,0,0);
+            glTranslated(torso.off.x,torso.off.y,torso.off.z);
             drawBone(torso);
             glPushMatrix();
                 // Arms
-                drawArm(3,-1);
-                drawArm(8,1);
-            glPopMatrix();
-            glPushMatrix();
-                // Head
-                glTranslated(head.off.x,head.off.y,head.off.z);
-                drawLabel(head.ch);
-                glRotated(head.ang.ph,1,0,0);
-                glRotated(head.ang.th,0,1,0);
-                drawBone(head);
+                drawArm(3,1);
+                drawArm(8,-1);
+                glPushMatrix();
+                    // Head
+                    drawLabel(head.ch);
+                    glRotated(head.ang.ph,1,0,0);
+                    glRotated(head.ang.th,0,1,0);
+                    glTranslated(head.off.x,head.off.y,head.off.z);
+                    drawBone(head);
+                glPopMatrix();
             glPopMatrix();
         glPopMatrix();
     glPopMatrix();
-    drawLeg(13,-1);
-    drawLeg(18,1);
 }
 void Skeleton::drawBone(int idx) // draw bone at origin
 {
-    cout << "drawing " << bones[idx]->name << "\n";
     vbo_t vbo = bones[idx]->vbo;
     DrawModel(vbo);
 }
@@ -154,13 +150,14 @@ void Skeleton::drawBone(bone b) // draw bone at origin
         // adjust to scale to reasonable size + face along the +z axis
         glRotated(-90,0,1,0);
         glScaled(40,40,40);
-        cout << "drawing " << b.name << "\n";
         vbo_t vbo = b.vbo;
         DrawModel(vbo);
     glPopMatrix();
 }
-void Skeleton::drawLeg(int idx, float i) // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
+void Skeleton::drawLeg(int idx, float i) // draw leg: i - +/- 1 axis rotation specifier, ch - starting char signifier
 {
+    if(idx >= NUM_BONES || idx < 0) Fatal("Invalid index in drawLeg: %c\n",idx);
+    else if (i != 1 && i != -1) Fatal("Invalid value for i in drawLeg: %c\n",i);
     const bone femur = *bones[idx];
     const bone tibfib = *bones[idx+1];
     const bone talus = *bones[idx+2];
@@ -180,21 +177,21 @@ void Skeleton::drawLeg(int idx, float i) // draw leg: i - +/- axis rotation spec
             // move tibfib+talus+foot+toes down the y axis the length of the femur
             glTranslated(tibfib.off.x,tibfib.off.y,tibfib.off.z);
             drawLabel(tibfib.ch);
-            glRotated(femur.ang.ph,-1,0,0);
+            glRotated(tibfib.ang.ph,-1,0,0);
             drawBone(tibfib);
             glPushMatrix();
                 // talus
                 //move talus+foot+toes down the y axis the length of the tibia/fibula
                 glTranslated(talus.off.x,talus.off.y,talus.off.z);
                 drawLabel(talus.ch);
-                glRotated(talus.ang.ph,0,1,0);
-                glRotated(talus.ang.th,-1,0,0);
+                glRotated(talus.ang.th,0,1,0);
+                glRotated(talus.ang.ph,-1,0,0);
                 drawBone(talus);
                 glPushMatrix();
                     // foot
                     // move foot+toes down along y axis the length of talus
                     glTranslated(foot.off.x,foot.off.y,foot.off.z);
-                    drawLabel(foot.ch);
+                    //drawLabel(foot.ch);
                     drawBone(foot);
                     glPushMatrix();
                         // toes
@@ -211,6 +208,8 @@ void Skeleton::drawLeg(int idx, float i) // draw leg: i - +/- axis rotation spec
 }
 void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
 {
+    if(idx >= NUM_BONES || idx < 0) Fatal("Invalid index in drawLabel: %c\n",idx);
+
     const bone shoulder = *bones[idx];
     const bone humerus = *bones[idx+1];
     const bone ulna = *bones[idx+2];
@@ -226,40 +225,43 @@ void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation spec
         // upper arm
         glTranslated(humerus.off.x,humerus.off.y,humerus.off.z);
         drawLabel(humerus.ch);
-        glRotated(humerus.ang.ph,1,0,0);
-        glRotated(humerus.ang.th,0,0,i);
+        glRotated(humerus.ang.th,0,-1,0);
+        glRotated(humerus.ang.ph,0,0,i);
         drawBone(humerus);
-        
-
         glPushMatrix();
             // lower arm - radius + ulna
             // radius
             glPushMatrix();
                 glTranslated(radius.off.x,radius.off.y,radius.off.z);
-                glRotated(radius.ang.ph,1,0,0);
+                drawLabel(radius.ch);
+                glRotated(radius.ang.ph,0,0,i);
                 drawBone(radius);
-            glPopMatrix();
-            // ulna
-            glPushMatrix();
-                glTranslated(ulna.off.x,ulna.off.y,ulna.off.z);
-                drawLabel(ulna.ch);
-                glRotated(ulna.ang.ph,1,0,0);
                 drawBone(ulna);
                 glPushMatrix();
                     // hand
                     glTranslated(hand.off.x,hand.off.y,hand.off.z);
                     drawLabel(hand.ch);
-                    glRotated(hand.ang.ph,1,0,0);
-                    glRotated(hand.ang.th,0,i,0);
+                    glRotated(hand.ang.th,-i,0,0);
+                    glRotated(hand.ang.ph,0,0,i);
                     drawBone(hand);
-                glPopMatrix();    
-            glPopMatrix();  
+                glPopMatrix();
+            glPopMatrix();
         glPopMatrix();
     glPopMatrix();
 }
 void Skeleton::drawLabel(char ch) // draw char signifier labels at each bone
 {
-    glColor3f(1,1,1);
-    glRasterPos3d(0,0,0);
+    if(!(ch >= 'A') || !(ch <= 'W')) Fatal("Invalid char in drawLabel: %c\n",ch);
+    glDisable(GL_LIGHTING);
+    // if the label being drawn is the one currently selected by the user, draw in green instead of red
+    if(ch == selected_label) glColor3f(0,1,0);
+    else glColor3f(1,0,0);
+    glRasterPos3d(0,1,2);
     Print("%c",ch);
+    glEnable(GL_LIGHTING);
+}
+void Skeleton::setLabel(char ch)
+{
+    if(ch >= 'A' && ch <= 'W') selected_label = ch;
+    else Fatal("Invalid char in setLabel: %c\n",ch);
 }
