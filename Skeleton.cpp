@@ -104,36 +104,45 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
     glColor3f(1,1,1);
 
     const bone pelvis = *bones[0];
-    const bone torso = *bones[1];
-    const bone head = *bones[2];
+    const bone lumbar = *bones[1];
+    const bone torso = *bones[2];
+    const bone head = *bones[3];
 
-    drawLeg(13,-1);
-    drawLeg(18,1);
+    drawLeg(14,-1);
+    drawLeg(19,1);
+
     // Draw upper body
     glPushMatrix();
         // Pelvis
         drawBone(pelvis);
         drawLabel(pelvis.ch);
         glPushMatrix();
-            // Torso
+            // Lumbar
+            drawLabel(lumbar.ch);
+            glRotated(lumbar.ang.ph,1,0,0);
+            glTranslated(lumbar.off.x,lumbar.off.y,lumbar.off.z);
+            drawBone(lumbar);
             glPushMatrix();
-                glTranslated(0,5,0);
-                drawLabel(torso.ch);
-            glPopMatrix();
-            glRotated(torso.ang.ph,1,0,0);
-            glTranslated(torso.off.x,torso.off.y,torso.off.z);
-            drawBone(torso);
-            glPushMatrix();
-                // Arms
-                drawArm(3,1);
-                drawArm(8,-1);
+                // Torso
                 glPushMatrix();
-                    // Head
-                    drawLabel(head.ch);
-                    glRotated(head.ang.ph,1,0,0);
-                    glRotated(head.ang.th,0,1,0);
-                    glTranslated(head.off.x,head.off.y,head.off.z);
-                    drawBone(head);
+                    glTranslated(0,5,0);
+                    drawLabel(torso.ch);
+                glPopMatrix();
+                glRotated(torso.ang.ph,1,0,0);
+                glTranslated(torso.off.x,torso.off.y,torso.off.z);
+                drawBone(torso);
+                glPushMatrix();
+                    // Arms
+                    drawArm(4,1);
+                    drawArm(9,-1);
+                    glPushMatrix();
+                        // Head
+                        drawLabel(head.ch);
+                        glRotated(head.ang.ph,1,0,0);
+                        glRotated(head.ang.th,0,1,0);
+                        glTranslated(head.off.x,head.off.y,head.off.z);
+                        drawBone(head);
+                    glPopMatrix();
                 glPopMatrix();
             glPopMatrix();
         glPopMatrix();
@@ -251,7 +260,7 @@ void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation spec
 }
 void Skeleton::drawLabel(char ch) // draw char signifier labels at each bone
 {
-    if(!(ch >= 'A') || !(ch <= 'W')) Fatal("Invalid char in drawLabel: %c\n",ch);
+    if(!validChar(ch)) Fatal("Invalid char in drawLabel: %c\n",ch);
     glDisable(GL_LIGHTING);
     // if the label being drawn is the one currently selected by the user, draw in green instead of red
     if(ch == selected_label) glColor3f(0,1,0);
@@ -262,6 +271,16 @@ void Skeleton::drawLabel(char ch) // draw char signifier labels at each bone
 }
 void Skeleton::setLabel(char ch)
 {
-    if(ch >= 'A' && ch <= 'W') selected_label = ch;
-    else Fatal("Invalid char in setLabel: %c\n",ch);
+    if(!validChar(ch)) Fatal("Invalid char in setLabel: %c\n",ch);
+    selected_label = ch;
+}
+bool Skeleton::validIdx(int idx)
+{
+    if(idx >= min_idx && idx <= max_idx) return true;
+    return false;
+}
+bool Skeleton::validChar(char ch)
+{
+    if(ch >= min_char && ch <= max_char) return true;
+    return false;
 }

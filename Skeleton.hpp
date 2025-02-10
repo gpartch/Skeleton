@@ -51,11 +51,21 @@ class Skeleton{
       vbo_t readBoneFile(string); // read data from bone file and create vbo
       shared_ptr<bone> newBone(int); // retrieve data for and create new bone
       void initBoneAdj(); // initialize bone adjacencies
+      bool validIdx(int idx);
+      bool validChar(char ch);
       
       // current selected label
       char selected_label = -1;
       // number of bones
-      const static int NUM_BONES = 23;
+      const static int NUM_BONES = 24;
+      // min char label
+      const char min_char = 'A';
+      // max char label
+      const char max_char = 'A' + NUM_BONES - 1;
+      // min idx
+      const int min_idx = 0;
+      // max idx
+      const int max_idx = NUM_BONES - 1;
       // array of pointers to bones
       shared_ptr<bone> bones[NUM_BONES];
       // path to directory that contains bone files
@@ -64,6 +74,7 @@ class Skeleton{
       const string bones_f[NUM_BONES] = 
       {
          "sacrum.vtp.ply",          // pelvis/ tailbone/ lower spine
+         "lumbar_spine.vtp.ply",    // lumbar/ lower spine
          "thorax.vtp.ply",          // torso/ thorax/ mid-spine
          "cervical_spine.vtp.ply",  // head/ neck/ upper spine
 
@@ -94,7 +105,8 @@ class Skeleton{
       // names of bones
       const string bones_n[NUM_BONES]
       {
-         "pelvis and tailbone/ lower spine",
+         "pelvis and tailbone",
+         "lumbar/ lower spine",
          "torso and thorax/ mid-spine",
          "head and neck/ upper spine",
 
@@ -126,96 +138,99 @@ class Skeleton{
       // eg - how does this limb need to be moved in x,y,z directions relative to parent limb
       const offset bones_off[NUM_BONES]
       {
-         {0,0,0}, // 0.A pelvis/ tailbone/ lower spine
-         {0,18,-3}, // 1.B torso/ thorax/ mid-spine
-         {0,-16,2}, // 2.C head/ neck/ upper spine
+         {0,0,0},          // 0.A pelvis/ tailbone
+         {0,8,0},          // 1.B lumbar/ lower spine
+         {0,18,-3},        // 2.C torso/ thorax/ mid-spine
+         {0,-16,2},        // 3.D head/ neck/ upper spine
 
-         {6,0,1}, // 3.D left shoulder blade
-         {6,-1.25,.5}, // 4.E left upper arm
-         {-.5,-12,.5}, // 5.F left lower arm (ulna)
-         {-.5,-12,.5}, // 6.G left lower arm (radius)
-         {1.5,-9.75,.75}, // 7.H left hand
+         {6,0,1},          // 4.E left shoulder blade
+         {6,-1.25,.5},     // 5.F left upper arm
+         {-.5,-12,.5},     // 6.G left lower arm (ulna)
+         {-.5,-12,.5},     // 7.H left lower arm (radius)
+         {1.5,-9.75,.75},  // 8.I left hand
 
-         {-6,0,1}, // 8.I right shoulder blade
-         {-6,-1.25,.5}, // 9.J right upper arm
-         {.5,-12,.5}, // 10.K right lower arm (ulna)
-         {.5,-12,.5}, // 11.L right lower arm (radius)
-         {-1.5,-9.75,.75}, // 12.M right hand
+         {-6,0,1},         // 9.J right shoulder blade
+         {-6,-1.25,.5},    // 10.K right upper arm
+         {.5,-12,.5},      // 11.L right lower arm (ulna)
+         {.5,-12,.5},      // 12.M right lower arm (radius)
+         {-1.5,-9.75,.75}, // 13.N right hand
 
-         {3,-3.25,-2.25}, // 13.N left upper leg
-         {0,-16.75,0}, // 14.O left lower leg
-         {0,-16.25,0}, // 15.P left ball of foot
-         {0,-2.25,-1.75}, // 16.Q left foot
-         {0,0,7.5}, // 17.R left toes
+         {3,-3.25,-2.25},  // 14.O left upper leg
+         {0,-16.75,0},     // 15.P left lower leg
+         {0,-16.25,0},     // 16.Q left ball of foot
+         {0,-2.25,-1.75},  // 17.R left foot
+         {0,0,7.5},        // 18.S left toes
 
-         {-3,-3.25,-2.25}, // 18.S right upper leg
-         {0,-16.75,0}, // 19.T right lower leg
-         {0,-16.25,0}, // 20.U right ball of foot
-         {0,-2.25,-1.75}, // 21.V right foot
-         {0,0,7.5} // 22.W right toes
+         {-3,-3.25,-2.25}, // 19.T right upper leg
+         {0,-16.75,0},     // 20.U right lower leg
+         {0,-16.25,0},     // 21.V right ball of foot
+         {0,-2.25,-1.75},  // 22.W right foot
+         {0,0,7.5}         // 23.X right toes
       };
       // bone adjacencies as indices of bones array
       // listed as adj if the movement of one bone directly impacts another - NOT whether they are next to each other
       const vector<vector<int>> bones_adj
       {
-         {1,13,18},  // 0.A pelvis/ tailbone/ lower spine
-         {0,2},      // 1.B torso/ thorax/ mid-spine
-         {1},        // 2.C head/ neck/ upper spine
+         {1,13,18},  // 0.A pelvis/ tailbone
+         {0,2},      // 1.B lumbar/ lower spine
+         {1,3},      // 2.C torso/ thorax/ mid-spine
+         {2},        // 3.D head/ neck/ upper spine
 
-         {4},        // 3.D left shoulder blade
-         {3,5,6},    // 4.E left upper arm
-         {4,6},      // 5.F left lower arm (ulna)
-         {4,6},      // 6.G left lower arm (radius)
-         {5,6},      // 7.H left hand
+         {4},        // 4.E left shoulder blade
+         {3,5,6},    // 5.F left upper arm
+         {4,6},      // 6.G left lower arm (ulna)
+         {4,6},      // 7.H left lower arm (radius)
+         {5,6},      // 8.I left hand
 
-         {9},        // 8.I right shoulder blade
-         {8,10,11},  // 9.J right upper arm
-         {9,12},     // 10.K right lower arm (ulna)
-         {9,12},     // 11.L right lower arm (radius)
-         {10,11},    // 12.M right hand
+         {9},        // 9.J right shoulder blade
+         {8,10,11},  // 10.K right upper arm
+         {9,12},     // 11.L right lower arm (ulna)
+         {9,12},     // 12.M right lower arm (radius)
+         {10,11},    // 13.N right hand
 
-         {0,14},     // 13.N left upper leg
-         {13,15},    // 14.O left lower leg
-         {14,16},    // 15.P left ball of foot
-         {15,17},    // 16.Q left foot
-         {16},       // 17.R left toes
+         {0,14},     // 14.O left upper leg
+         {13,15},    // 15.P left lower leg
+         {14,16},    // 16.Q left ball of foot
+         {15,17},    // 17.R left foot
+         {16},       // 18.S left toes
 
-         {0,19},     // 18.S right upper leg
-         {18,20},    // 19.T right lower leg
-         {19,21},    // 20.U right ball of foot
-         {20,22},    // 21.V right foot
-         {21}        // 22.W right toes
+         {0,19},     // 19.T right upper leg
+         {18,20},    // 20.U right lower leg
+         {19,21},    // 21.V right ball of foot
+         {20,22},    // 22.W right foot
+         {21}        // 23.X right toes
       };
       // angles for bone motion
       angles bones_ang[NUM_BONES]
       {
-         {0,0},   // 0.A pelvis/ tailbone/ lower spine
-         {0,0},   // 1.B torso/ thorax/ mid-spine
-         {0,0},   // 2.C head/ neck/ upper spine
+         {0,0},      // 0.A pelvis/ tailbone
+         {0,0},      // 1.B lumbar/ lower spine
+         {0,0},      // 2.C torso/ thorax/ mid-spine
+         {0,0},      // 3.D head/ neck/ upper spine
 
-         {0,0},   // 3.D left shoulder blade
-         {0,92},   // 4.E left upper arm
-         {0,0},   // 5.F left lower arm (ulna)
-         {0,-10},   // 6.G left lower arm (radius)
-         {0,0},   // 7.H left hand
+         {0,0},      // 4.E left shoulder blade
+         {0,92},     // 5.F left upper arm
+         {0,0},      // 6.G left lower arm (ulna)
+         {0,-10},    // 7.H left lower arm (radius)
+         {0,0},      // 8.I left hand
 
-         {0,0},   // 8.I right shoulder blade
-         {0,92},   // 9.J right upper arm
-         {0,0},   // 10.K right lower arm (ulna)
-         {0,-10},   // 11.L right lower arm (radius)
-         {0,0},   // 12.M right hand
+         {0,0},      // 9.J right shoulder blade
+         {0,92},     // 10.K right upper arm
+         {0,0},      // 11.L right lower arm (ulna)
+         {0,-10},    // 12.M right lower arm (radius)
+         {0,0},      // 13.N right hand
 
-         {0,0},   // 13.N left upper leg
-         {0,0},   // 14.O left lower leg
-         {0,0},   // 15.P left ball of foot
-         {0,0},   // 16.Q left foot
-         {0,0},   // 17.R left toes
+         {0,0},      // 14.O left upper leg
+         {0,0},      // 15.P left lower leg
+         {0,0},      // 16.Q left ball of foot
+         {0,0},      // 17.R left foot
+         {0,0},      // 18.S left toes
 
-         {0,0},   // 18.S right upper leg
-         {0,0},   // 19.T right lower leg
-         {0,0},   // 20.U right ball of foot
-         {0,0},   // 21.V right foot
-         {0,0}    // 22.W right toes
+         {0,0},      // 19.T right upper leg
+         {0,0},      // 20.U right lower leg
+         {0,0},      // 21.V right ball of foot
+         {0,0},      // 22.W right foot
+         {0,0}       // 23.X right toes
       };
 };
 #endif
@@ -223,33 +238,34 @@ class Skeleton{
 /*
 centered at PELVIS
 BONES:
-0.A pelvis/ tailbone/ lower spine - sacrum.vtp.ply
-1.B torso/ thorax/ mid-spine - thorax.vtp.ply
-2.C head/ neck/ upper spine - cervical_spine.vtp.ply
+0.A pelvis/ tailbone - sacrum.vtp.ply
+1.B lumbar/ lower spine - lumbar_spine.vtp.ply
+2.C torso/ thorax/ mid-spine - thorax.vtp.ply
+3.D head/ neck/ upper spine - cervical_spine.vtp.ply
 
-3.D left shoulder blade - scapula_l.vtp.ply
-4.E left upper arm - humerus_l.vtp.ply
-5.F left lower arm (ulna) - ulna_l.vtp.ply
-6.G left lower arm (radius) - radius_l.vtp.ply
-7.H left hand - lunate_l.vtp.ply
+4.E left shoulder blade - scapula_l.vtp.ply
+5.F left upper arm - humerus_l.vtp.ply
+6.G left lower arm (ulna) - ulna_l.vtp.ply
+7.H left lower arm (radius) - radius_l.vtp.ply
+8.I left hand - lunate_l.vtp.ply
 
-8.I right shoulder blade - scapula.vtp.ply
-9.J right upper arm - humerus.vtp.ply
-10.K right lower arm (ulna) - ulna.vtp.ply
-11.L right lower arm (radius) - radius.vtp.ply
-12.M right hand - lunate.vtp.ply
+9.J right shoulder blade - scapula.vtp.ply
+10.K right upper arm - humerus.vtp.ply
+11.L right lower arm (ulna) - ulna.vtp.ply
+12.M right lower arm (radius) - radius.vtp.ply
+13.N right hand - lunate.vtp.ply
 
-13.N left upper leg - l_femur.vtp.ply
-14.O left lower leg - l_fibula.vtp.ply
-15.P left ball of foot - l_talus.vtp.ply
-16.Q left foot - l_foot.vtp.ply
-17.R left toes - l_bofoot.vtp.ply
+14.O left upper leg - l_femur.vtp.ply
+15.P left lower leg - l_fibula.vtp.ply
+16.Q left ball of foot - l_talus.vtp.ply
+17.R left foot - l_foot.vtp.ply
+18.S left toes - l_bofoot.vtp.ply
 
-18.S right upper leg - r_femur.vtp.ply
-19.T right lower leg - r_fibula.vtp.ply
-20.U right ball of foot - r_talus.vtp.ply
-21.V right foot - r_foot.vtp.ply
-22.W right toes - r_bofoot.vtp.ply
+19.T right upper leg - r_femur.vtp.ply
+20.U right lower leg - r_fibula.vtp.ply
+21.V right ball of foot - r_talus.vtp.ply
+22.W right foot - r_foot.vtp.ply
+23.X right toes - r_bofoot.vtp.ply
 */
 
 /*
