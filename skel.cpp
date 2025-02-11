@@ -32,6 +32,7 @@ int rev=0;          //  Reverse draw order
 int scale=0;        //  Adjust scale
 unique_ptr<Skeleton> skel = nullptr; 
 int gx=0,gy=0,gz=0;
+float lx=1.0, ly=1.0, lz=1.0, lth=0;
 
 /*
  *  OpenGL (GLUT) calls this routine to display the scene
@@ -75,7 +76,28 @@ void display()
       float Ambient[]   = {0.3,0.3,0.3,1.0};
       float Diffuse[]   = {1.0,1.0,1.0,1.0};
       float Specular[]  = {0.5,0.5,0.5,1.0};
-      float Position[]  = {3.0,1.0,3.0,1.0};
+      float Position[4];
+      if(light == 1)
+      {
+         Position[0] = 1.0;
+         Position[1] = 1.0;
+         Position[2] = 1.0;
+         Position[3] = 0;
+      }
+      else
+      {
+         Position[0] = lx;
+         Position[1] = ly;
+         Position[2] = lz;
+         Position[3] = 1.0;
+         glPushMatrix();
+         glColor3f(0,1,0);
+         glPointSize(3);
+         glBegin(GL_POINTS);
+         glVertex3f(lx,ly,lz);
+         glEnd();
+         glPopMatrix();
+      }
       float Shinyness[] = {16};
       //  Set ambient, diffuse, specular components and position of light 0
       glLightfv(GL_LIGHT0,GL_AMBIENT ,Ambient);
@@ -176,6 +198,12 @@ void special(int key,int x,int y)
    //  PageDown key - decrease dim
    else if (key == GLUT_KEY_PAGE_UP && dim>0.2)
       dim -= 5;
+   else if (key == GLUT_KEY_F9)
+   {
+      light += 1;
+      light %= 3;
+   }
+      
    //  Keep angles to +/-360 degrees
    th %= 360;
    ph %= 360;
@@ -299,6 +327,19 @@ void onExit()
    skel.reset();
 }
 
+void idle()
+{
+   //  Get elapsed (wall) time in seconds
+   double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
+   //  Calculate spin angle 90 degrees/second
+   lth = fmod(90*t,360);
+   lx = Cos(lth) * 50;
+   lz = Sin(lth) * 50;
+   //cout << "lx: " << lx << " ly: " << ly << " lz: " << lz << "\n";
+   //  Request display update
+   glutPostRedisplay();
+}
+
 /*
  *  Start up GLUT and tell it what to do
  */
@@ -322,6 +363,7 @@ int main(int argc,char* argv[])
    glutKeyboardFunc(key);
    glutMotionFunc(motion);
    glutMouseFunc(mouse);
+   glutIdleFunc(idle);
    atexit(onExit);
 
    Skeleton * new_skel = new Skeleton();
