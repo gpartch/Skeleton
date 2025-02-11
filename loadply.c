@@ -112,7 +112,7 @@ static buf_t find(char* name[],off_t off[],int type[],int Nvar,const char* v[],i
 //
 //  Load PLY file
 //
-vbo_t LoadPLY(const char* file)
+vbo_t LoadPLY(const char* file, int inv_norm)
 {
    //  Open file
    FILE* f = fopen(file,"r");
@@ -320,7 +320,13 @@ vbo_t LoadPLY(const char* file)
          //  Compute normal for triangle
          vec3 A = sub(J,I);
          vec3 B = sub(K,J);
-         vec3 nml = normalize(cross(A,B));
+         vec3 nml = nml = normalize(cross(A,B));
+         if(inv_norm)
+         {
+            nml.x = -nml.x;
+            nml.y = -nml.y;
+            nml.z = -nml.z;
+         }
          //  Add triangle normal to vertexes
          addvec((float*)(V+(long)vbo.normal.off+N*i),nml);
          addvec((float*)(V+(long)vbo.normal.off+N*j),nml);
