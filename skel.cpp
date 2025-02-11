@@ -225,12 +225,12 @@ void key(unsigned char ch,int x,int y)
    //  Toggle axes
    else if (ch == 'x' || ch == 'X') axes = 1-axes;
    // adjust global xyz offset
-   else if (ch == '1') gx -= 5;
-   else if (ch == '2') gx += 5;
-   else if (ch == '3') gy -= 5;
-   else if (ch == '4') gy += 5;
-   else if (ch == '5') gz -= 5;
-   else if (ch == '6') gz += 5;
+   else if (ch == '1' && gx != -60) gx -= 5;
+   else if (ch == '2' && gx != 60) gx += 5;
+   else if (ch == '3' && gy != -60) gy -= 5;
+   else if (ch == '4' && gy != 60) gy += 5;
+   else if (ch == '5' && gz != -60) gz -= 5;
+   else if (ch == '6' && gz != 60) gz += 5;
    // select bone
    else if ((ch >= 'a' && ch <= 'w') || (ch >= 'A' && ch <= 'W'))
    {
@@ -303,6 +303,9 @@ void mouse(int button, int state, int x, int y)
        if (state == GLUT_UP) return; // Disregard redundant GLUT_UP events
        if(button == 3) dim -= 5;
        else dim += 5;
+
+       if(dim < 0) dim = 0;
+       if(dim > 100) dim = 100;
    }
    glutPostRedisplay();
 }
