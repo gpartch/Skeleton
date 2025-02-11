@@ -149,9 +149,9 @@ class Skeleton{
       // eg - how does this limb need to be moved in x,y,z directions relative to parent limb
       const offset bones_off[NUM_BONES]
       {
-         {0,0,0},          // 0.A pelvis/ tailbone
-         {0,8,0},          // 1.B lumbar/ lower spine
-         {0,18,-3},        // 2.C torso/ thorax/ mid-spine
+         {0,0,3.25},          // 0.A pelvis/ tailbone
+         {0,.75,-3.75},          // 1.B lumbar/ lower spine
+         {0,11.75,.45},        // 2.C torso/ thorax/ mid-spine
          {0,-16,2},        // 3.D head/ neck/ upper spine
 
          {6,0,1},          // 4.E left shoulder blade
@@ -247,7 +247,7 @@ class Skeleton{
       angles bones_ang[NUM_BONES]
       {
          {0,0},      // 0.A pelvis/ tailbone
-         {0,0},      // 1.B lumbar/ lower spine
+         {0,-5},      // 1.B lumbar/ lower spine
          {0,0},      // 2.C torso/ thorax/ mid-spine
          {0,0},      // 3.D head/ neck/ upper spine
 

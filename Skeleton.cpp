@@ -117,19 +117,25 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
     const bone torso = *bones[2];
     const bone head = *bones[3];
 
-    drawLeg(14,-1);
-    drawLeg(19,1);
+
 
     // Draw upper body
     glPushMatrix();
         // Pelvis
+        glTranslated(pelvis.off.x,pelvis.off.y,pelvis.off.z);
+        drawLeg(14,-1);
+        drawLeg(19,1);
         drawBone(pelvis);
         drawLabel(pelvis.ch);
         glPushMatrix();
             // Lumbar
-            drawLabel(lumbar.ch);
-            glRotated(lumbar.ang.ph,1,0,0);
+            glPushMatrix();
+                glTranslated(0,5,0); // move lumbar label up so its not overlapping pelvis label
+                drawLabel(lumbar.ch);
+            glPopMatrix();
             glTranslated(lumbar.off.x,lumbar.off.y,lumbar.off.z);
+            glRotated(lumbar.ang.ph,1,0,0);
+            glTranslated(0,5.25,2.25); // move rotation pt on lumbar to the origin
             drawBone(lumbar);
             glPushMatrix();
                 // Torso
