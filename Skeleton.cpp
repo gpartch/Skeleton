@@ -21,20 +21,19 @@ Skeleton::~Skeleton()
 
 //-------------------------------------------------------------------
 
-vbo_t Skeleton::readBoneFile(string file_name)
+vbo_t Skeleton::readBoneFile(string file_name, int idx)
 {
-    
     // If a separate file location is specified in bones_adr, append to the start of file location path
     string bone_file_path = bones_adr!="" ? (bones_adr + "/" + file_name) : ("./" + file_name);
     // generate a new VBO for object
-    vbo_t new_vbo = LoadModel(toCStr(bone_file_path));
+    vbo_t new_vbo = LoadModel(toCStr(bone_file_path),bones_l[idx]);
     return new_vbo;
 }
 shared_ptr<bone> Skeleton::newBone(int idx)
 {
     if(idx >= NUM_BONES || idx < 0) Fatal("invalid bone index in newBone: %d\n",idx);
     // get VBO for bone
-    vbo_t vbo = readBoneFile(bones_f[idx]);
+    vbo_t vbo = readBoneFile(bones_f[idx],idx);
     // get bone char signifier
     char ch = 'A' + idx;
     // get angles for degrees of motion
@@ -52,16 +51,26 @@ void Skeleton::initBoneAdj()
     // adjacency information is stored as a vector of int indices corresponding to elements in bones array
     for(int i = 0; i < NUM_BONES; i++)
     {
+        // retrieve current bone
         shared_ptr<bone> b = bones[i];
-        // get adjacency list
+        // get adjacency list for current bone
         vector<int> adj_list = bones_adj.at(i);
+        // get directional information for bones adj to current bone
+        vector<bone_dir> dir_list = bones_dir.at(i);
+
         // get length of adjacency list
         int len = adj_list.size();
+        // for each bone in adjacency list, append an adj_bone with ptr to that bone and the direction to the current bone's adj list
         for(int j = 0; j < len; j++)
         {
-            // get adj bone pointer using int index stored in adj list 'a'
-            shared_ptr<bone> adj_bone = bones[adj_list.at(j)];
-            b->adj.push_back(adj_bone);
+            // get adj bone pointer using int index stored in adj_list corresponding to a bone in bones array
+            shared_ptr<bone> new_adj_ptr = bones[adj_list.at(j)];
+            // get direction of the adj bone from the current bone
+            bone_dir new_bone_dir = dir_list.at(j);
+            // create a new adj_bone
+            adj_bone new_adj_bone = {new_adj_ptr,new_bone_dir};
+            // add to current bone's adjacency list
+            b->adj.push_back(new_adj_bone);
         }
     }
 }
@@ -83,14 +92,14 @@ const void Skeleton::printBone(int idx, bool v)
     int len = b.adj.size();
     for(int j = 0; j < len; j++)
     {
-        string adj_name = b.adj.at(j)->name;
+        string adj_name = b.adj.at(j).adj_bone->name;
         cout << " [" << adj_name << "]";
     }
     cout << "\n";
     if(v == true) {printVBO(b.vbo,1);}
     else {printVBO(b.vbo,0);}
 }
-const void Skeleton::printBones(bool v) // print bones information to terminal
+const void Skeleton::printSkeleton(bool v) // print bones information to terminal
 {
     for(int i = 0; i < NUM_BONES; i++) {printBone(i,v);}
 }

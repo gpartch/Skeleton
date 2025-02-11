@@ -16,9 +16,9 @@ using std::shared_ptr;
 
 char * toCStr(string str); // defined in file cstr.cpp
 
-
 struct angles{ int th,ph; }; // angles/degrees of freedom for bone
 struct offset { double x,y,z; }; // offset to the position of a bone
+struct adj_bone;
 struct bone
 {
    vbo_t vbo; // vbo for the bone
@@ -27,7 +27,18 @@ struct bone
    angles ang; // two angles, th and ph, for two degrees of freedom
    offset off; // offset to the position of a bone
    string name; // bone name
-   vector<shared_ptr<bone>> adj; // adjacent bones
+   vector<adj_bone> adj; // adjacent bones
+};
+enum bone_dir
+{
+   up = 1, // adj bone is upstream
+   down = -1, // adj bone is downstream
+   neither = 0 // adj bone is neither upstream nor downstream
+};
+struct adj_bone
+{
+   shared_ptr<bone> adj_bone;
+   bone_dir dir;
 };
 
 class Skeleton{
@@ -36,7 +47,7 @@ class Skeleton{
       ~Skeleton();
 
       void resetAng(); // reset all bone angles
-      const void printBones(bool v); // print bones information to terminal - set bool v to true for verbose
+      const void printSkeleton(bool v); // print bones information to terminal - set bool v to true for verbose
       const void printBone(int idx, bool v);
       void setAng(int idx, int th, int ph); // increment bone motion angles
       void drawSkeleton(); // draw the complete skeleton
@@ -48,7 +59,7 @@ class Skeleton{
       void setLabel(char ch); // set currently selected label
 
    private:
-      vbo_t readBoneFile(string); // read data from bone file and create vbo
+      vbo_t readBoneFile(string, int idx); // read data from bone file and create vbo
       shared_ptr<bone> newBone(int); // retrieve data for and create new bone
       void initBoneAdj(); // initialize bone adjacencies
       bool validIdx(int idx);
@@ -171,34 +182,66 @@ class Skeleton{
       // listed as adj if the movement of one bone directly impacts another - NOT whether they are next to each other
       const vector<vector<int>> bones_adj
       {
-         {1,13,18},  // 0.A pelvis/ tailbone
+         {1,14,19},  // 0.A pelvis/ tailbone
          {0,2},      // 1.B lumbar/ lower spine
-         {1,3},      // 2.C torso/ thorax/ mid-spine
+         {1,3,4,9},      // 2.C torso/ thorax/ mid-spine
          {2},        // 3.D head/ neck/ upper spine
 
-         {4},        // 4.E left shoulder blade
-         {3,5,6},    // 5.F left upper arm
-         {4,6},      // 6.G left lower arm (ulna)
-         {4,6},      // 7.H left lower arm (radius)
-         {5,6},      // 8.I left hand
+         {2,5},        // 4.E left shoulder blade
+         {4,6,7},    // 5.F left upper arm
+         {5,7,8},      // 6.G left lower arm (ulna)
+         {5,6,8},      // 7.H left lower arm (radius)
+         {6,7},      // 8.I left hand
 
-         {9},        // 9.J right shoulder blade
-         {8,10,11},  // 10.K right upper arm
-         {9,12},     // 11.L right lower arm (ulna)
-         {9,12},     // 12.M right lower arm (radius)
-         {10,11},    // 13.N right hand
+         {2,10},        // 9.J right shoulder blade
+         {9,11,12},  // 10.K right upper arm
+         {10,12,13},     // 11.L right lower arm (ulna)
+         {10,11,13},     // 12.M right lower arm (radius)
+         {11,12},    // 13.N right hand
 
-         {0,14},     // 14.O left upper leg
-         {13,15},    // 15.P left lower leg
-         {14,16},    // 16.Q left ball of foot
-         {15,17},    // 17.R left foot
-         {16},       // 18.S left toes
+         {0,15},     // 14.O left upper leg
+         {14,16},    // 15.P left lower leg
+         {15,17},    // 16.Q left ball of foot
+         {16,18},    // 17.R left foot
+         {17},       // 18.S left toes
 
-         {0,19},     // 19.T right upper leg
-         {18,20},    // 20.U right lower leg
-         {19,21},    // 21.V right ball of foot
-         {20,22},    // 22.W right foot
-         {21}        // 23.X right toes
+         {0,20},     // 19.T right upper leg
+         {19,21},    // 20.U right lower leg
+         {20,22},    // 21.V right ball of foot
+         {21,23},    // 22.W right foot
+         {22}        // 23.X right toes
+      };
+      // hierarchy/ direction of adjacency
+      const vector<vector<bone_dir>> bones_dir
+      {
+         {down,down,down}, // 0.A pelvis/ tailbone
+         {up,down}, // 1.B lumbar/ lower spine
+         {up,down,down,down}, // 2.C torso/ thorax/ mid-spine
+         {up}, // 3.D head/ neck/ upper spine
+
+         {up,down}, // 4.E left shoulder blade
+         {up,down,down}, // 5.F left upper arm
+         {up,neither,down}, // 6.G left lower arm (ulna)
+         {up,neither,down}, // 7.H left lower arm (radius)
+         {up,up}, // 8.I left hand
+
+         {up,down}, // 9.J right shoulder blade
+         {up,down,down}, // 10.K right upper arm
+         {up,neither,down}, // 11.L right lower arm (ulna)
+         {up,neither,down}, // 12.M right lower arm (radius)
+         {up,up}, // 13.N right hand
+
+         {up,down}, // 14.O left upper leg
+         {up,down}, // 15.P left lower leg
+         {up,down}, // 16.Q left ball of foot
+         {up,down}, // 17.R left foot
+         {up}, // 18.S left toes
+
+         {up,down}, // 19.T right upper leg
+         {up,down}, // 20.U right lower leg
+         {up,down}, // 21.V right ball of foot
+         {up,down}, // 22.W right foot
+         {up} // 23.X right toes
       };
       // angles for bone motion
       angles bones_ang[NUM_BONES]
@@ -231,6 +274,38 @@ class Skeleton{
          {0,0},      // 21.V right ball of foot
          {0,0},      // 22.W right foot
          {0,0}       // 23.X right toes
+      };
+      // whether or not to invert the normals for a particular bone - 1:yes, 0:no
+      int bones_l[NUM_BONES]
+      {
+         0, // 0.A pelvis/ tailbone
+         0, // 1.B lumbar/ lower spine
+         0, // 2.C torso/ thorax/ mid-spine
+         0, // 3.D head/ neck/ upper spine
+
+         0, // 4.E left shoulder blade
+         0, // 5.F left upper arm
+         0, // 6.G left lower arm (ulna)
+         0, // 7.H left lower arm (radius)
+         0, // 8.I left hand
+
+         1, // 9.J right shoulder blade
+         1, // 10.K right upper arm
+         1, // 11.L right lower arm (ulna)
+         1, // 12.M right lower arm (radius)
+         1, // 13.N right hand
+
+         0, // 14.O left upper leg
+         1, // 15.P left lower leg
+         0, // 16.Q left ball of foot
+         0, // 17.R left foot
+         0, // 18.S left toes
+
+         1, // 19.T right upper leg
+         0, // 20.U right lower leg
+         0, // 21.V right ball of foot
+         1, // 22.W right foot
+         1 // 23.X right toes
       };
 };
 #endif
