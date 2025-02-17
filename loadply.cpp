@@ -2,7 +2,7 @@
 //  Willem A. (Vlakkies) Schreuder
 //
 
-#include "CFunctions.h"
+#include "Skeleton.hpp"
 #include <sys/types.h>
 
 //  Maximum number of fields
@@ -212,9 +212,11 @@ vbo_t LoadPLY(const char* file, int inv_norm)
    if (!vbo.color.n) vbo.color = find(name,off,type,Nvar,rgba,3);
 
    //  Allocate vertex and element memory
-   unsigned char* V = malloc(Nv*N);
+   // unsigned char* V = malloc(Nv*N);
+   unsigned char* V = new unsigned char[Nv * N];
    if (!V) Fatal("Cannot allocate vertex memory\n");
-   unsigned int* E = malloc(3*Nf*sizeof(int));
+   // unsigned int* E = malloc(3*Nf*sizeof(int));
+   unsigned int* E = new unsigned int[3 * Nf];
    if (!E) Fatal("Cannot allocate VBO data\n");
 
    // Snarf vertex data
@@ -320,7 +322,7 @@ vbo_t LoadPLY(const char* file, int inv_norm)
          //  Compute normal for triangle
          vec3 A = sub(J,I);
          vec3 B = sub(K,J);
-         vec3 nml = nml = normalize(cross(A,B));
+         vec3 nml = normalize(cross(A,B));
          if(inv_norm)
          {
             nml.x = -nml.x;
@@ -353,8 +355,10 @@ vbo_t LoadPLY(const char* file, int inv_norm)
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 
    //  Free arrays
-   free(V);
-   free(E);
+   // free(V);
+   // free(E);
+   delete[] V;
+   delete[] E;
    for (int k=0;k<Nvar;k++)
       free(name[k]);
 

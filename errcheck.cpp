@@ -1,6 +1,6 @@
 //  CSCIx239 library
 //  Willem A. (Vlakkies) Schreuder
-#include "CFunctions.h"
+#include "Skeleton.hpp"
 
 //
 //  Check for OpenGL errors and print to stderr

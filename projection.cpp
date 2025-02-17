@@ -1,6 +1,6 @@
 //  CSCIx229 library
 //  Willem A. (Vlakkies) Schreuder
-#include "CFunctions.h"
+#include "Skeleton.hpp"
 
 //
 //  Set projection
