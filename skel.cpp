@@ -1,3 +1,17 @@
+/*
+ *  Skeleton Viewer
+ *
+ *  Key bindings:
+ *  p          Toggle between orthogonal/perspective projections
+ *  -/+        Decrease/increase skeleton elevation
+ *  a          Toggle axes
+ *  m          Togle mode
+ *  arrows     Change view angle
+ *  PgDn/PgUp  Zoom in and out
+ *  0          Reset view angle
+ *  ESC        Exit
+ */
+#include "CFunctions.h"
 #include "Skeleton.hpp"
 
 int axes=1;         //  Display axes

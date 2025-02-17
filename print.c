@@ -1,6 +1,6 @@
 //  CSCIx239 library
 //  Willem A. (Vlakkies) Schreuder
-#include "Skeleton.hpp"
+#include "CFunctions.h"
 
 //
 //  Convenience routine to output raster text

@@ -25,23 +25,24 @@ CLEAN=rm -f $(EXE) *.o *.a
 endif
 
 # Dependencies
-fatal.o: fatal.cpp CFunctions.h
-errcheck.o: errcheck.cpp CFunctions.h
-print.o: print.cpp CFunctions.h
-loadobj.o: loadobj.cpp CFunctions.h
-projection.o: projection.cpp CFunctions.h
-printVBO.o: printVBO.cpp CFunctions.h
+fatal.o: fatal.c CFunctions.h
+errcheck.o: errcheck.c CFunctions.h
+print.o: print.c CFunctions.h
+loadtexbmp.o: loadtexbmp.c CFunctions.h
+loadobj.o: loadobj.c CFunctions.h
+projection.o: projection.c CFunctions.h
+printVBO.o: printVBO.c CFunctions.h
 Skeleton.o: Skeleton.cpp Skeleton.hpp
 skel.o: skel.cpp Skeleton.hpp
 cstr.o: cstr.cpp Skeleton.hpp
 
 #  Create archive
-Skeleton.a:fatal.o errcheck.o print.o read.o projection.o loadply.o loadmodel.o printVBO.o cstr.o Skeleton.o
+Skeleton.a:fatal.o errcheck.o print.o loadtexbmp.o read.o projection.o loadply.o loadmodel.o printVBO.o cstr.o Skeleton.o
 	ar -rcs $@ $^
 
 # Compile rules
-# .c.o:
-# 	gcc -c $(CFLG)  $<
+.c.o:
+	gcc -c $(CFLG)  $<
 .cpp.o:
 	g++ -c $(CFLG)  $<
 

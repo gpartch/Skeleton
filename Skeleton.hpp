@@ -7,11 +7,6 @@
 #include <vector>
 #include <sys/types.h>
 #include <memory>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <math.h>
 
 using std::cout;
 using std::string;
@@ -19,61 +14,10 @@ using std::vector;
 using std::unique_ptr;
 using std::shared_ptr;
 
-// GLEW _MUST_ be included first
-#ifdef USEGLEW
-#include <GL/glew.h>
-#endif
-//  Get all GL prototypes
-#define GL_GLEXT_PROTOTYPES
-//  Select SDL, SDL2, GLFW or GLUT
-#if defined(SDL2)
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
-#elif defined(SDL)
-#include <SDL/SDL.h>
-#include <SDL/SDL_mixer.h>
-#elif defined(GLFW)
-#include <GLFW/glfw3.h>
-#elif defined(__APPLE__)
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
-//  Make sure GLU and GL are included
-#ifdef __APPLE__
-#include <OpenGL/glu.h>
-#include <OpenGL/gl.h>
-// Tell Xcode IDE to not gripe about OpenGL deprecation
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#else
-#include <GL/glu.h>
-#include <GL/gl.h>
-#endif
-//  Default resolution
-//  For Retina displays compile with -DRES=2
-#ifndef RES
-#define RES 1
-#endif
-
-//  cos and sin in degrees
-#define Cos(th) cos(3.14159265/180*(th))
-#define Sin(th) sin(3.14159265/180*(th))
+char * toCStr(string str); // defined in file cstr.cpp
 
 struct angles{ int th,ph; }; // angles/degrees of freedom for bone
 struct offset { double x,y,z; }; // offset to the position of a bone
-struct buf_t
-{
-   void* off;
-   int type;
-   int n;
-};
-struct vbo_t
-{
-   int type,n,stride;
-   unsigned int buf,ele;
-   buf_t vertex,color,normal,texture;
-   float dim;
-};
 struct adj_bone;
 struct bone
 {
@@ -96,51 +40,6 @@ struct adj_bone
    shared_ptr<bone> adj_bone;
    bone_dir dir;
 };
-
-// cstr.cpp
-   char * toCStr(string str);
-
-// errcheck.cpp
-   void ErrCheck(const char* where);
-
-// fatal.cpp
-   void Fatal(const char* format , ...);
-
-// loadmodel.cpp
-   void DrawVBO(vbo_t vbo);
-   void DrawModel(vbo_t vbo);
-   float maxdim8(float dim,double xyz[],int n);
-   float maxdim4(float dim,float xyz[],int n);
-vbo_t LoadModel(const char* file, int inv_norm);
-
-// loadply.c
-   // vec3 struct
-   // static vec3 sub(vec3 v1,vec3 v2)
-   // static vec3 cross(vec3 v1,vec3 v2)
-   // static vec3 normalize(vec3 v)
-   // static void addvec(float* V,vec3 v)
-   // static int findname(char* name[],int Nvar,const char* v[],int n)
-   // static buf_t find(char* name[],off_t off[],int type[],int Nvar,const char* v[],int n)
-   vbo_t LoadPLY(const char* file, int inv_norm);
-
-// print.cpp
-   void Print(const char* format , ...);
-
-// printVBO.cpp
-   void printVBO(vbo_t vbo, int v);
-
-// projection.cpp
-   void Project(double fov,double asp,double dim);
-
-// read.cpp
-   // static int CRLF(char ch)
-   char* readline(FILE* f);
-   char* getword(char** line);
-   void readfloat(char* line,int n,float x[]);
-   void readcoord(char* line,int n,float* x[],int* N,int* M);
-   char* readstr(char* line,const char* skip);
-   int compstr(char* line,char* ref);
-
 
 class Skeleton{
    public:

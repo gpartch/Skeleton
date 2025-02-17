@@ -2,14 +2,14 @@
 //  Willem A. (Vlakkies) Schreuder
 //
 
-#include "Skeleton.hpp"
+#include "CFunctions.h"
 #include <sys/types.h>
 
 //  Maximum number of fields
 #define MAX 256
-const char* xyzw[4] = {"x","y","z","w"}; // "x","y","z","w"
-const char* nxyz[3] = {"nx","ny","nz"}; // "nx","ny","nz"
-const char* rgba[4] = {"red","green","blue","alpha"}; // "red","green","blue","alpha"
+const char* xyzw[4] = {"x","y","z","w"};
+const char* nxyz[3] = {"nx","ny","nz"};
+const char* rgba[4] = {"red","green","blue","alpha"};
 
 //  Vector 3 math
 typedef struct {float x,y,z;} vec3;
@@ -115,20 +115,20 @@ static buf_t find(char* name[],off_t off[],int type[],int Nvar,const char* v[],i
 vbo_t LoadPLY(const char* file, int inv_norm)
 {
    //  Open file
-   FILE* f = fopen(file,"r"); // file
+   FILE* f = fopen(file,"r");
    if (!f) Fatal("Cannot open file %s\n",file);
    //  Check initial line for header
    char* line = readline(f);
-   if (compstr(line,toCStr("ply"))) Fatal("Invalid PLY header in %s\n",file);
+   if (compstr(line,"ply")) Fatal("Invalid PLY header in %s\n",file);
    //  Expect binary_little_endian or ascii
    line = readline(f);
-   int bin = !compstr(line,toCStr("format binary_little_endian 1.0"));
-   if (!bin && compstr(line,toCStr("format ascii 1.0"))) Fatal("Invalid PLY format %s\n",line);
+   int bin = !compstr(line,"format binary_little_endian 1.0");
+   if (!bin && compstr(line,"format ascii 1.0")) Fatal("Invalid PLY format %s\n",line);
    //  Skip comments
-   while ((line = readline(f)) && compstr(line,toCStr("comment "))==0) {}
+   while ((line = readline(f)) && compstr(line,"comment ")==0) {}
    //  Get vertex count
-   int Nv; // vertex count
-   if (compstr(line,toCStr("element vertex ")))
+   int Nv;
+   if (compstr(line,"element vertex "))
       Fatal("Expected element vertex %s\n",line);
    else if (sscanf(line+strlen("element vertex "),"%d",&Nv)!=1)
       Fatal("Error reading vertex count: %s\n",line);
@@ -136,40 +136,39 @@ vbo_t LoadPLY(const char* file, int inv_norm)
       Fatal("Invalid vertex count: %d\n",Nv);
       
    //  Process fields
-   int   type[MAX]; // data type (float, double, or uns. byte)
-   off_t off[MAX]; // byte offset between elements (4, 8, or 1)
-   char* name[MAX]; // name of field, eg x,y,z
-   int N=0; // total number of bytes for process fields
-   int Nvar=0; // total number of process fields
-   for (int k=0 ; (line=readline(f)) && compstr(line,toCStr("property "))==0 && k<MAX ; k++)
+   int   type[MAX];
+   off_t off[MAX];
+   char* name[MAX];
+   int N=0,Nvar=0;
+   for (int k=0 ; (line=readline(f)) && compstr(line,"property ")==0 && k<MAX ; k++)
    {
       Nvar++;
       off[k] = N;
-      if (compstr(line,toCStr("property float "))==0)
+      if (compstr(line,"property float ")==0)
       {
          name[k] = strdup(line+strlen("property float "));
          type[k] = GL_FLOAT;
          N += 4;
       }
-      else if (compstr(line,toCStr("property double "))==0)
+      else if (compstr(line,"property double ")==0)
       {
          name[k] = strdup(line+strlen("property double "));
          type[k] = GL_DOUBLE;
          N += 8;
       }
-      else if (compstr(line,toCStr("property uchar "))==0)
+      else if (compstr(line,"property uchar ")==0)
       {
          name[k] = strdup(line+strlen("property uchar "));
          type[k] = GL_UNSIGNED_BYTE;
          N += 1;
       }
-      else if (compstr(line,toCStr("property "))==0)
+      else if (compstr(line,"property ")==0)
          Fatal("Not implemented %s\n",line);
    }
 
    //  Get face count
-   int Nf; // number of faces
-   if (compstr(line,toCStr("element face ")))
+   int Nf;
+   if (compstr(line,"element face "))
       Fatal("Expected element face %s\n",line);
    else if (sscanf(line+strlen("element face "),"%d",&Nf)!=1)
       Fatal("Error reading face count: %s\n",line);
@@ -177,17 +176,17 @@ vbo_t LoadPLY(const char* file, int inv_norm)
       Fatal("Invalid face count: %d\n",Nf);
    //  Get face lists
    line = readline(f);
-   if (compstr(line,toCStr("property list uchar int vertex_ind")) &&
-       compstr(line,toCStr("property list uchar uint vertex_ind")))
+   if (compstr(line,"property list uchar int vertex_ind") &&
+       compstr(line,"property list uchar uint vertex_ind"))
       Fatal("Expected property list uchar int vertex_ind: %s\n",line);
    //  Skip until end_header
-   while ((line = readline(f)) && compstr(line,toCStr("end_header"))) {}
-   if (!line || compstr(line,toCStr("end_header")))
+   while ((line = readline(f)) && compstr(line,"end_header")) {}
+   if (!line || compstr(line,"end_header"))
       Fatal("Cannot find end_header: %s\n",line);
 
    //  Pad with normal if required
-   int N0    = N; // initial num of bytes for property process fields
-   int Nvar0 = Nvar; // initial num of property process fields
+   int N0    = N;
+   int Nvar0 = Nvar;
    if (findname(name,Nvar,nxyz,3)<0)
    {
       for (int k=0;k<3;k++)
@@ -213,11 +212,9 @@ vbo_t LoadPLY(const char* file, int inv_norm)
    if (!vbo.color.n) vbo.color = find(name,off,type,Nvar,rgba,3);
 
    //  Allocate vertex and element memory
-   // unsigned char* V = malloc(Nv*N);
-   unsigned char* V = new unsigned char[Nv * N]; // vertices
+   unsigned char* V = malloc(Nv*N);
    if (!V) Fatal("Cannot allocate vertex memory\n");
-   // unsigned int* E = malloc(3*Nf*sizeof(int));
-   unsigned int* E = new unsigned int[3 * Nf]; // triangles
+   unsigned int* E = malloc(3*Nf*sizeof(int));
    if (!E) Fatal("Cannot allocate VBO data\n");
 
    // Snarf vertex data
@@ -251,13 +248,13 @@ vbo_t LoadPLY(const char* file, int inv_norm)
       }
    }
    //  Binary includes normals
-   // else if (N==N0)
-   // {
-   //    if (fread(V,N,Nv,f)!=Nv) Fatal("Cannot read %d vertexes\n",Nv);
-   // }
+   else if (N==N0)
+   {
+      if (fread(V,N,Nv,f)!=Nv) Fatal("Cannot read %d vertexes\n",Nv);
+   }
    //  Need to calculate normals
-   // else
-   // {
+   else
+   {
       memset(V,0,Nv*N);
       unsigned char* v=V;
       for (int k=0;k<Nv;k++)
@@ -265,7 +262,7 @@ vbo_t LoadPLY(const char* file, int inv_norm)
          if (fread(v,N0,1,f)!=1) Fatal("Cannot read vertex %d\n",k);
          v += N;
       }
-   //}
+   }
 
    //  Read faces and assemble EBO
    if (bin)
@@ -323,7 +320,7 @@ vbo_t LoadPLY(const char* file, int inv_norm)
          //  Compute normal for triangle
          vec3 A = sub(J,I);
          vec3 B = sub(K,J);
-         vec3 nml = normalize(cross(A,B));
+         vec3 nml = nml = normalize(cross(A,B));
          if(inv_norm)
          {
             nml.x = -nml.x;
@@ -356,10 +353,8 @@ vbo_t LoadPLY(const char* file, int inv_norm)
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 
    //  Free arrays
-   // free(V);
-   // free(E);
-   delete[] V;
-   delete[] E;
+   free(V);
+   free(E);
    for (int k=0;k<Nvar;k++)
       free(name[k]);
 
