@@ -1,8 +1,6 @@
 #ifndef SKELETON_HPP
 #define SKELETON_HPP
 
-#include "CFunctions.h"
-
 #include <iostream>
 #include <vector>
 #include <sys/types.h>
@@ -111,7 +109,7 @@ struct adj_bone
    void DrawModel(vbo_t vbo);
    float maxdim8(float dim,double xyz[],int n);
    float maxdim4(float dim,float xyz[],int n);
-vbo_t LoadModel(const char* file, int inv_norm);
+   vbo_t LoadModel(const char* file, int inv_norm);
 
 // loadply.c
    // vec3 struct

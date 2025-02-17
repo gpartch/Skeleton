@@ -119,16 +119,16 @@ vbo_t LoadPLY(const char* file, int inv_norm)
    if (!f) Fatal("Cannot open file %s\n",file);
    //  Check initial line for header
    char* line = readline(f);
-   if (compstr(line,"ply")) Fatal("Invalid PLY header in %s\n",file);
+   if (compstr(line,toCStr("ply"))) Fatal("Invalid PLY header in %s\n",file);
    //  Expect binary_little_endian or ascii
    line = readline(f);
-   int bin = !compstr(line,"format binary_little_endian 1.0");
-   if (!bin && compstr(line,"format ascii 1.0")) Fatal("Invalid PLY format %s\n",line);
+   int bin = !compstr(line,toCStr("format binary_little_endian 1.0"));
+   if (!bin && compstr(line,toCStr("format ascii 1.0"))) Fatal("Invalid PLY format %s\n",line);
    //  Skip comments
-   while ((line = readline(f)) && compstr(line,"comment ")==0) {}
+   while ((line = readline(f)) && compstr(line,toCStr("comment "))==0) {}
    //  Get vertex count
    int Nv;
-   if (compstr(line,"element vertex "))
+   if (compstr(line,toCStr("element vertex ")))
       Fatal("Expected element vertex %s\n",line);
    else if (sscanf(line+strlen("element vertex "),"%d",&Nv)!=1)
       Fatal("Error reading vertex count: %s\n",line);
@@ -140,35 +140,35 @@ vbo_t LoadPLY(const char* file, int inv_norm)
    off_t off[MAX];
    char* name[MAX];
    int N=0,Nvar=0;
-   for (int k=0 ; (line=readline(f)) && compstr(line,"property ")==0 && k<MAX ; k++)
+   for (int k=0 ; (line=readline(f)) && compstr(line,toCStr("property "))==0 && k<MAX ; k++)
    {
       Nvar++;
       off[k] = N;
-      if (compstr(line,"property float ")==0)
+      if (compstr(line,toCStr("property float "))==0)
       {
          name[k] = strdup(line+strlen("property float "));
          type[k] = GL_FLOAT;
          N += 4;
       }
-      else if (compstr(line,"property double ")==0)
+      else if (compstr(line,toCStr("property double "))==0)
       {
          name[k] = strdup(line+strlen("property double "));
          type[k] = GL_DOUBLE;
          N += 8;
       }
-      else if (compstr(line,"property uchar ")==0)
+      else if (compstr(line,toCStr("property uchar "))==0)
       {
          name[k] = strdup(line+strlen("property uchar "));
          type[k] = GL_UNSIGNED_BYTE;
          N += 1;
       }
-      else if (compstr(line,"property ")==0)
+      else if (compstr(line,toCStr("property "))==0)
          Fatal("Not implemented %s\n",line);
    }
 
    //  Get face count
    int Nf;
-   if (compstr(line,"element face "))
+   if (compstr(line,toCStr("element face ")))
       Fatal("Expected element face %s\n",line);
    else if (sscanf(line+strlen("element face "),"%d",&Nf)!=1)
       Fatal("Error reading face count: %s\n",line);
@@ -176,12 +176,12 @@ vbo_t LoadPLY(const char* file, int inv_norm)
       Fatal("Invalid face count: %d\n",Nf);
    //  Get face lists
    line = readline(f);
-   if (compstr(line,"property list uchar int vertex_ind") &&
-       compstr(line,"property list uchar uint vertex_ind"))
+   if (compstr(line,toCStr("property list uchar int vertex_ind")) &&
+       compstr(line,toCStr("property list uchar uint vertex_ind")))
       Fatal("Expected property list uchar int vertex_ind: %s\n",line);
    //  Skip until end_header
-   while ((line = readline(f)) && compstr(line,"end_header")) {}
-   if (!line || compstr(line,"end_header"))
+   while ((line = readline(f)) && compstr(line,toCStr("end_header"))) {}
+   if (!line || compstr(line,toCStr("end_header")))
       Fatal("Cannot find end_header: %s\n",line);
 
    //  Pad with normal if required
@@ -252,7 +252,7 @@ vbo_t LoadPLY(const char* file, int inv_norm)
    //  Binary includes normals
    else if (N==N0)
    {
-      if (fread(V,N,Nv,f)!=Nv) Fatal("Cannot read %d vertexes\n",Nv);
+      // if (fread(V,N,Nv,f)!=Nv) Fatal("Cannot read %d vertexes\n",Nv);
    }
    //  Need to calculate normals
    else
@@ -361,10 +361,6 @@ vbo_t LoadPLY(const char* file, int inv_norm)
    delete[] E;
    for (int k=0;k<Nvar;k++)
       free(name[k]);
-
-   
-   // printf("%s\n","VBO in LoadPLY:");
-   // printVBO(vbo);
 
    return vbo;
 }

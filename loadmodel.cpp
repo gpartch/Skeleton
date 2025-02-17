@@ -90,18 +90,8 @@ float maxdim4(float dim,float xyz[],int n)
 //  Load an Model file
 vbo_t LoadModel(const char* file, int inv_norm)
 {
-   //int l = strlen(file)-3;
    vbo_t vbo = {};
-   // if (!strcasecmp(file+l,"obj"))
-   //    vbo = LoadOBJ(file);
-   // else if (!strcasecmp(file+l,"ply"))
-      vbo = LoadPLY(file,inv_norm);
-   // else if (!strcasecmp(file+l,"stl"))
-   //    vbo = LoadSTL(file);
-   // else
-   //   Fatal("Unknown model type %s\n",file);
+   vbo = LoadPLY(file,inv_norm);
    fprintf(stderr,"%s = %f\n",file,vbo.dim);
-   // printf("%s\n","VBO in LoadModel:");
-   // printVBO(vbo);
    return vbo;
 }
