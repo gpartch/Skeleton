@@ -1,4 +1,4 @@
-#include "CFunctions.h"
+#include "Skeleton.hpp"
 
 void printVBO(const vbo_t vbo, int v) {
     printf("vbo_t:\n");
