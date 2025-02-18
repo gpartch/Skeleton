@@ -5,7 +5,7 @@
 //
 //  Draw VBO data
 //
-void DrawVBO(vbo_t vbo)
+void Skeleton::DrawVBO(vbo_t vbo)
 {
    //  Bind VBO
    glBindBuffer(GL_ARRAY_BUFFER,vbo.buf);
@@ -44,7 +44,7 @@ void DrawVBO(vbo_t vbo)
 }
 
 //  Draw a model file
-void DrawModel(vbo_t vbo)
+void Skeleton::DrawModel(vbo_t vbo)
 {
    if (vbo.type==0)
       glCallList(vbo.buf);
@@ -53,7 +53,7 @@ void DrawModel(vbo_t vbo)
 }
 
 //  Maximum dimensions
-float maxdim8(float dim,double xyz[],int n)
+float Skeleton::maxdim8(float dim,double xyz[],int n)
 {
    if (n==4)
    {
@@ -69,7 +69,7 @@ float maxdim8(float dim,double xyz[],int n)
    }
    return dim;
 }
-float maxdim4(float dim,float xyz[],int n)
+float Skeleton::maxdim4(float dim,float xyz[],int n)
 {
    if (n==4)
    {
@@ -88,7 +88,7 @@ float maxdim4(float dim,float xyz[],int n)
 
 
 //  Load an Model file
-vbo_t LoadModel(const char* file, int inv_norm)
+vbo_t Skeleton::LoadModel(const char* file, int inv_norm)
 {
    vbo_t vbo = {};
    vbo = LoadPLY(file,inv_norm);

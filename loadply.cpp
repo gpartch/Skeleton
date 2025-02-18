@@ -112,7 +112,7 @@ static buf_t find(char* name[],off_t off[],int type[],int Nvar,const char* v[],i
 //
 //  Load PLY file
 //
-vbo_t LoadPLY(const char* file, int inv_norm)
+vbo_t Skeleton::LoadPLY(const char* file, int inv_norm)
 {
    //  Open file
    FILE* f = fopen(file,"r");

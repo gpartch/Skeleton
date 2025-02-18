@@ -5,7 +5,7 @@
 //
 //  Print message to stderr and exit
 //
-void Fatal(const char* format , ...)
+void Skeleton::Fatal(const char* format , ...)
 {
    va_list args;
    va_start(args,format);

@@ -1,6 +1,6 @@
 #include "Skeleton.hpp"
 
-void printVBO(const vbo_t vbo, int v) {
+void Skeleton::printVBO(const vbo_t vbo, int v) {
     printf("vbo_t:\n");
     printf("  type: %d\n", vbo.type);
     printf("  n: %d\n", vbo.n);

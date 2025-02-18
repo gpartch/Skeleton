@@ -8,7 +8,7 @@
 //
 
 #define LEN 8192  //  Maximum length of text string
-void Print(const char* format , ...)
+void Skeleton::Print(const char* format , ...)
 {
    char    buf[LEN];
    char*   ch=buf;

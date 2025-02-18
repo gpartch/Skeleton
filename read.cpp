@@ -18,7 +18,7 @@ static int CRLF(char ch)
 //
 static int linelen=0;    //  Length of line
 static char* line=NULL;  //  Internal storage for line
-char* readline(FILE* f)
+char* Skeleton::readline(FILE* f)
 {
    char ch;  //  Character read
    int k=0;  //  Character count
@@ -56,7 +56,7 @@ char* readline(FILE* f)
 //  Read to next non-whitespace word
 //  Note that this destroys line in the process
 //
-char* getword(char** line)
+char* Skeleton::getword(char** line)
 {
    //  Skip leading whitespace
    while (**line && isspace(**line))
@@ -79,7 +79,7 @@ char* getword(char** line)
 //
 //  Read n floats
 //
-void readfloat(char* line,int n,float x[])
+void Skeleton::readfloat(char* line,int n,float x[])
 {
    for (int i=0;i<n;i++)
    {
@@ -97,7 +97,7 @@ void readfloat(char* line,int n,float x[])
 //    x is the array
 //    This function adds more memory as needed in 8192 work chunks
 //
-void readcoord(char* line,int n,float* x[],int* N,int* M)
+void Skeleton::readcoord(char* line,int n,float* x[],int* N,int* M)
 {
    //  Allocate memory if necessary
    if (*N+n > *M)
@@ -117,7 +117,7 @@ void readcoord(char* line,int n,float* x[],int* N,int* M)
 //     After skip sting return first word
 //     getword terminates the line
 //
-char* readstr(char* line,const char* skip)
+char* Skeleton::readstr(char* line,const char* skip)
 {
    //  Check for a match on the skip string
    while (*skip && *line && *skip==*line)
@@ -134,7 +134,7 @@ char* readstr(char* line,const char* skip)
 //
 //  Compare starting strings
 //
-int compstr(char* line,char* ref)
+int Skeleton::compstr(char* line,char* ref)
 {
    if (!line) return -1;
    int n = strlen(ref);

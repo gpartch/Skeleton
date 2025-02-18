@@ -5,7 +5,7 @@
 //
 //  Set projection
 //
-void Project(double fov,double asp,double dim)
+void Skeleton::Project(double fov,double asp,double dim)
 {
    //  Tell OpenGL we want to manipulate the projection matrix
    glMatrixMode(GL_PROJECTION);
