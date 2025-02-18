@@ -396,14 +396,45 @@ void Skeleton::mouseMoveEvent(QMouseEvent* e)
 //
 void Skeleton::wheelEvent(QWheelEvent* e)
 {
-   //  Zoom out
-   if (e->angleDelta().y()<0)
-      setDIM(dim+1);
-   //  Zoom in
-   else if (dim>2)
-      setDIM(dim-1);
-   //  Signal to change dimension spinbox
-   emit setDim(dim);
+    if(selected_bone == -1)
+    {
+        //  Zoom out
+        if (e->angleDelta().y()<0)
+            setDIM(dim+1);
+        //  Zoom in
+        else if (dim>5)
+            setDIM(dim-1);
+        //  Signal to change dimension spinbox
+        emit setDim(dim);
+    }
+    else if(selected_bone >= 0 && selected_bone < NUM_BONES)
+    {
+        //  Zoom out
+        if (e->angleDelta().y()<0)
+        {
+            // increase ph
+            setAng(selected_bone,0,5);
+        }
+        //  Zoom in
+        else if (e->angleDelta().y()>0)
+        {
+            // decrease ph
+            setAng(selected_bone,0,-5);
+        }
+        //  Slide Up
+        if (e->angleDelta().x()<0)
+        {
+            // increase th
+            setAng(selected_bone,5,0);
+        }
+        //  Slide Down
+        else if (e->angleDelta().x()>0)
+        {
+            // decrease th
+            setAng(selected_bone,-5,0);
+        }
+    }
+    update();
 }
 
 //-------------------------------------------------------------------
