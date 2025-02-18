@@ -95,7 +95,7 @@ static int findname(char* name[],int Nvar,const char* v[],int n)
 //
 //  Find matching vertex group
 //
-static buf_t find(char* name[],off_t off[],int type[],int Nvar,const char* v[],int n)
+static buf_t locate(char* name[],off_t off[],int type[],int Nvar,const char* v[],int n)
 {
    buf_t buf = {};
    int k = findname(name,Nvar,v,n);
@@ -114,6 +114,7 @@ static buf_t find(char* name[],off_t off[],int type[],int Nvar,const char* v[],i
 //
 vbo_t Skeleton::LoadPLY(const char* file, int inv_norm)
 {
+   cout << file << "\n";
    //  Open file
    FILE* f = fopen(file,"r");
    if (!f) Fatal("Cannot open file %s\n",file);
@@ -200,16 +201,20 @@ vbo_t Skeleton::LoadPLY(const char* file, int inv_norm)
    }
 
    //  Vertex buffer structure
-   vbo_t vbo = {.type=1,.n=3*Nf,.stride=N};
+   // vbo_t vbo = {.type=1,.n=3*Nf,.stride=N};
+   vbo_t vbo; 
+   vbo.type = 1;
+   vbo.n = 3*Nf;
+   vbo.stride = N;
    //  Vertex
-   vbo.vertex = find(name,off,type,Nvar,xyzw,4);
-   if (!vbo.vertex.n) vbo.vertex = find(name,off,type,Nvar,xyzw,3);
+   vbo.vertex = locate(name,off,type,Nvar,xyzw,4);
+   if (!vbo.vertex.n) vbo.vertex = locate(name,off,type,Nvar,xyzw,3);
    if (!vbo.vertex.n) Fatal("No vertex coordinates in PLY\n");
    //  Normals
-   vbo.normal = find(name,off,type,Nvar,nxyz,3);
+   vbo.normal = locate(name,off,type,Nvar,nxyz,3);
    //  Colors
-   vbo.color = find(name,off,type,Nvar,rgba,4);
-   if (!vbo.color.n) vbo.color = find(name,off,type,Nvar,rgba,3);
+   vbo.color = locate(name,off,type,Nvar,rgba,4);
+   if (!vbo.color.n) vbo.color = locate(name,off,type,Nvar,rgba,3);
 
    //  Allocate vertex and element memory
    // unsigned char* V = malloc(Nv*N);
@@ -346,10 +351,12 @@ vbo_t Skeleton::LoadPLY(const char* file, int inv_norm)
 
    //  Copy vertex data to VBO
    glGenBuffers(1,&vbo.buf);
+   if(vbo.buf <= 0) Fatal("%s\n","invalid VBO ID");
    glBindBuffer(GL_ARRAY_BUFFER,vbo.buf);
    glBufferData(GL_ARRAY_BUFFER,Nv*N,V,GL_STATIC_DRAW);
    //  Copy element data to EBO
    glGenBuffers(1,&vbo.ele);
+   if(vbo.ele <= 0) Fatal("%s\n","invalid EBO ID");
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,vbo.ele);
    glBufferData(GL_ELEMENT_ARRAY_BUFFER,3*Nf*sizeof(int),E,GL_STATIC_DRAW);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);

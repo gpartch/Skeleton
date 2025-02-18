@@ -11,47 +11,21 @@
 #include <string.h>
 #include <math.h>
 
+#include <QOpenGLWidget>
+#include <QString>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QDebug>
+#include <QOpenGLFunctions>
+#include <QOpenGLBuffer>
+
+// #include "VBO.hpp"
+
 using std::cout;
 using std::string;
 using std::vector;
 using std::unique_ptr;
 using std::shared_ptr;
-
-// GLEW _MUST_ be included first
-#ifdef USEGLEW
-#include <GL/glew.h>
-#endif
-//  Get all GL prototypes
-#define GL_GLEXT_PROTOTYPES
-//  Select SDL, SDL2, GLFW or GLUT
-#if defined(SDL2)
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
-#elif defined(SDL)
-#include <SDL/SDL.h>
-#include <SDL/SDL_mixer.h>
-#elif defined(GLFW)
-#include <GLFW/glfw3.h>
-#elif defined(__APPLE__)
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
-//  Make sure GLU and GL are included
-#ifdef __APPLE__
-#include <OpenGL/glu.h>
-#include <OpenGL/gl.h>
-// Tell Xcode IDE to not gripe about OpenGL deprecation
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#else
-#include <GL/glu.h>
-#include <GL/gl.h>
-#endif
-//  Default resolution
-//  For Retina displays compile with -DRES=2
-#ifndef RES
-#define RES 1
-#endif
 
 //  cos and sin in degrees
 #define Cos(th) cos(3.14159265/180*(th))
@@ -64,6 +38,13 @@ struct buf_t
    void* off;
    int type;
    int n;
+
+   // buf_t()
+   // {
+   //    off = nullptr;
+   //    type = -1;
+   //    n = -1;
+   // }
 };
 struct vbo_t
 {
@@ -71,6 +52,16 @@ struct vbo_t
    unsigned int buf,ele;
    buf_t vertex,color,normal,texture;
    float dim;
+
+   vbo_t()
+   {
+      type = 0;
+      n = 0;
+      stride = 0;
+      buf = 0;
+      ele = 0;
+      dim = 0;
+   }
 };
 struct adj_bone;
 struct bone
@@ -82,6 +73,22 @@ struct bone
    offset off; // offset to the position of a bone
    string name; // bone name
    vector<adj_bone> adj; // adjacent bones
+
+   bone()
+   {
+      ch = 0;
+      name = "";
+      adj = {};
+   }
+   bone(vbo_t v, char c, angles a, offset o,string n)
+   {
+      vbo = v;
+      ch = c;
+      ang = a;
+      off = o;
+      name = n;
+      adj = {};
+   }
 };
 enum bone_dir
 {
@@ -95,67 +102,29 @@ struct adj_bone
    bone_dir dir;
 };
 
-// cstr.cpp
-   char * toCStr(string str);
-
-// errcheck.cpp
-   void ErrCheck(const char* where);
-
-// fatal.cpp
-   void Fatal(const char* format , ...);
-
-// loadmodel.cpp
-   void DrawVBO(vbo_t vbo);
-   void DrawModel(vbo_t vbo);
-   float maxdim8(float dim,double xyz[],int n);
-   float maxdim4(float dim,float xyz[],int n);
-   vbo_t LoadModel(const char* file, int inv_norm);
-
-// loadply.c
-   // vec3 struct
-   // static vec3 sub(vec3 v1,vec3 v2)
-   // static vec3 cross(vec3 v1,vec3 v2)
-   // static vec3 normalize(vec3 v)
-   // static void addvec(float* V,vec3 v)
-   // static int findname(char* name[],int Nvar,const char* v[],int n)
-   // static buf_t find(char* name[],off_t off[],int type[],int Nvar,const char* v[],int n)
-   vbo_t LoadPLY(const char* file, int inv_norm);
-
-// print.cpp
-   void Print(const char* format , ...);
-
-// printVBO.cpp
-   void printVBO(vbo_t vbo, int v);
-
-// projection.cpp
-   void Project(double fov,double asp,double dim);
-
-// read.cpp
-   // static int CRLF(char ch)
-   char* readline(FILE* f);
-   char* getword(char** line);
-   void readfloat(char* line,int n,float x[]);
-   void readcoord(char* line,int n,float* x[],int* N,int* M);
-   char* readstr(char* line,const char* skip);
-   int compstr(char* line,char* ref);
-
-
-class Skeleton{
+class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
+{
+   Q_OBJECT // magic macro
+   // public: explicit MyGLWindow(QScreen *screen = nullptr);
+   // protected: QOpenGLContext *m_context;
    public:
-      Skeleton();
-      ~Skeleton();
+      Skeleton(QWidget* parent= nullptr) : QOpenGLWidget(parent) {};
 
+      QSize sizeHint() const {return QSize(500,600);}  //  Default size of widget
+
+      void initSkeleton();
       void resetAng(); // reset all bone angles
-      const void printSkeleton(bool v); // print bones information to terminal - set bool v to true for verbose
-      const void printBone(int idx, bool v);
+      void printSkeleton(bool v); // print bones information to terminal - set bool v to true for verbose
+      void printBone(int idx, bool v);
       void setAng(int idx, int th, int ph); // increment bone motion angles
       void drawSkeleton(); // draw the complete skeleton
-      void drawBone(int idx); // draw bone at origin
+      // void drawBone(int idx); // draw bone at origin
       void drawBone(bone b); // draw bone at origin
       void drawLeg(int idx, float i); // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
       void drawArm(int idx, float i); // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
       void drawLabel(char ch); // draw char signifier labels at each bone
       void setLabel(char ch); // set currently selected label
+      int getBoneIdx(bone b);
 
    private:
       vbo_t readBoneFile(string, int idx); // read data from bone file and create vbo
@@ -166,6 +135,7 @@ class Skeleton{
       
       // current selected label
       char selected_label = -1;
+      QString selected_label_name = "";
       // number of bones
       const static int NUM_BONES = 24;
       // min char label
@@ -179,7 +149,7 @@ class Skeleton{
       // array of pointers to bones
       shared_ptr<bone> bones[NUM_BONES];
       // path to directory that contains bone files
-      const string bones_adr = "./bones"; 
+      const string bones_adr = "../bones"; 
       // file names for bones
       const string bones_f[NUM_BONES] = 
       {
@@ -406,6 +376,92 @@ class Skeleton{
          1, // 22.W right foot
          1 // 23.X right toes
       };
+      public:
+         // cstr.cpp
+            char * toCStr(string str);
+
+         // errcheck.cpp
+            void ErrCheck(const char* where); //*
+            void ErrCheck(string where);
+
+         // fatal.cpp
+            void Fatal(const char* format , ...);
+
+         // loadmodel.cpp
+            void DrawVBO(vbo_t vbo); //*
+            void DrawModel(vbo_t vbo); //*
+            float maxdim8(float dim,double xyz[],int n);
+            float maxdim4(float dim,float xyz[],int n);
+            vbo_t LoadModel(const char* file, int inv_norm);
+
+         // loadply.c
+            // vec3 struct
+            // static vec3 sub(vec3 v1,vec3 v2)
+            // static vec3 cross(vec3 v1,vec3 v2)
+            // static vec3 normalize(vec3 v)
+            // static void addvec(float* V,vec3 v)
+            // static int findname(char* name[],int Nvar,const char* v[],int n)
+            // static buf_t find(char* name[],off_t off[],int type[],int Nvar,const char* v[],int n)
+            vbo_t LoadPLY(const char* file, int inv_norm); //*
+
+         // print.cpp
+            void Print(const char* format , ...); //*
+
+         // printVBO.cpp
+            void printVBO(vbo_t vbo, int v);
+
+         // projection.cpp
+            // void Project(double fov,double asp,double dim); //*
+
+         // read.cpp
+            // static int CRLF(char ch)
+            char* readline(FILE* f);
+            char* getword(char** line);
+            void readfloat(char* line,int n,float x[]);
+            void readcoord(char* line,int n,float* x[],int* N,int* M);
+            char* readstr(char* line,const char* skip);
+            int compstr(char* line,char* ref);
+
+         int axes=1;         //  Display axes
+         int light=1;        //  Toggle light
+         int proj=1;         //  Projection type
+         int th=0;           //  Azimuth of view angle
+         int ph=0;           //  Elevation of view angle
+         int fov=55;         //  Field of view (for perspective)
+         int mx=0,my=0;      //  Mouse coordinates
+         bool   mouse;       //  Mouse pressed
+         QPoint pos;         //  Mouse position
+         double asp=1;       //  Aspect ratio
+         double dim=60;     //  Size of world
+         char label = 'A';
+         int selected_bone = -1;
+         int gx=0,gy=0,gz=0;
+         float lx=1.0, ly=1.0, lz=1.0, lth=0;
+      
+      public slots:
+         void setGX(double X);      //  Slot to set x0
+         void setGY(double Y);      //  Slot to set y0
+         void setGZ(double Z);      //  Slot to set z0
+         void setDIM(double DIM);    //  Slot to set dim
+         void reset(void);           //  Reset view
+         void setBone(int idx); // set selected bone idx
+
+      signals:
+         void setAngles(QString text);  //  Signal for display angles
+         void setDim(double dim);     //  Signal for display dimensions
+      
+      // GL functionality
+      protected:
+         void initializeGL() override;                   //  Initialize widget
+         void resizeGL(int width, int height) override;  //  Resize widget
+         void paintGL() override;                        //  Draw widget
+         void mousePressEvent(QMouseEvent*);             //  Mouse pressed
+         void mouseReleaseEvent(QMouseEvent*);           //  Mouse released
+         void mouseMoveEvent(QMouseEvent*);              //  Mouse moved
+         void wheelEvent(QWheelEvent*);                  //  Mouse wheel
+      private:
+         void project();   
+         void lighting(int);
 };
 #endif
 

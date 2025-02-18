@@ -1,6 +1,6 @@
 #include "Skeleton.hpp"
 
-Skeleton::Skeleton()
+void Skeleton::initSkeleton()
 {
     cout << "Initializing skeleton...\n";
     cout << "Reading bone object files from " << bones_adr << "\n";
@@ -13,10 +13,6 @@ Skeleton::Skeleton()
     }
     // once all bones are allocated, initialize bone adjacency vectors
     initBoneAdj();
-}
-Skeleton::~Skeleton()
-{
-    for(int i = 0; i < NUM_BONES; i++) {bones[i].reset();}
 }
 
 //-------------------------------------------------------------------
@@ -43,7 +39,7 @@ shared_ptr<bone> Skeleton::newBone(int idx)
     // get bone name
     string name = bones_n[idx];
 
-    shared_ptr<bone> new_bone(new bone{vbo,ch,ang,off,name});
+    shared_ptr<bone> new_bone(new bone(vbo,ch,ang,off,name));
     return new_bone;
 }
 void Skeleton::initBoneAdj()
@@ -81,7 +77,15 @@ void Skeleton::resetAng() // reset all bone angles
 {
     for(int i = 0; i < NUM_BONES; i++) {bones[i]->ang.th=0; bones[i]->ang.ph=0;}
 }
-const void Skeleton::printBone(int idx, bool v)
+int Skeleton::getBoneIdx(bone b)
+{
+    for(int i = 0; i < NUM_BONES; i++)
+    {
+        if(bones[i]->ch == b.ch) return i;
+    }
+    return -1;
+}
+void Skeleton::printBone(int idx, bool v)
 {
     cout << "------------------------------\n";
     bone b = *bones[idx];
@@ -99,7 +103,7 @@ const void Skeleton::printBone(int idx, bool v)
     if(v == true) {printVBO(b.vbo,1);}
     else {printVBO(b.vbo,0);}
 }
-const void Skeleton::printSkeleton(bool v) // print bones information to terminal
+void Skeleton::printSkeleton(bool v) // print bones information to terminal
 {
     for(int i = 0; i < NUM_BONES; i++) {printBone(i,v);}
 }
@@ -117,8 +121,6 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
     const bone torso = *bones[2];
     const bone head = *bones[3];
 
-
-
     // Draw upper body
     glPushMatrix();
         // Pelvis
@@ -126,12 +128,12 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
         drawLeg(14,-1);
         drawLeg(19,1);
         drawBone(pelvis);
-        drawLabel(pelvis.ch);
+        // drawLabel(pelvis.ch);
         glPushMatrix();
             // Lumbar
             glPushMatrix();
                 glTranslated(0,5,0); // move lumbar label up so its not overlapping pelvis label
-                drawLabel(lumbar.ch);
+                // drawLabel(lumbar.ch);
             glPopMatrix();
             glTranslated(lumbar.off.x,lumbar.off.y,lumbar.off.z);
             glRotated(lumbar.ang.ph,1,0,0);
@@ -141,7 +143,7 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
                 // Torso
                 glPushMatrix();
                     glTranslated(0,5,0);
-                    drawLabel(torso.ch);
+                    // drawLabel(torso.ch);
                 glPopMatrix();
                 glRotated(torso.ang.ph,1,0,0);
                 glTranslated(torso.off.x,torso.off.y,torso.off.z);
@@ -152,7 +154,7 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
                     drawArm(9,-1);
                     glPushMatrix();
                         // Head
-                        drawLabel(head.ch);
+                        // drawLabel(head.ch);
                         glRotated(head.ang.ph,1,0,0);
                         glRotated(head.ang.th,0,1,0);
                         glTranslated(head.off.x,head.off.y,head.off.z);
@@ -163,18 +165,22 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
         glPopMatrix();
     glPopMatrix();
 }
-void Skeleton::drawBone(int idx) // draw bone at origin
-{
-    vbo_t vbo = bones[idx]->vbo;
-    DrawModel(vbo);
-}
+// void Skeleton::drawBone(int idx) // draw bone at origin
+// {
+//     vbo_t vbo = bones[idx]->vbo;
+//     ErrCheck("retrieve vbo");
+//     DrawModel(vbo);
+//     ErrCheck("draw bone " + bones_n[idx]);
+// }
 void Skeleton::drawBone(bone b) // draw bone at origin
 {
+    // cout << "drawing bone " << getBoneIdx(b) << ":" << b.ch << "\n";
     glPushMatrix();
         // adjust to scale to reasonable size + face along the +z axis
         glRotated(-90,0,1,0);
         glScaled(40,40,40);
         vbo_t vbo = b.vbo;
+        if(getBoneIdx(b) == selected_bone) {lighting(1);} else {lighting(0);}
         DrawModel(vbo);
     glPopMatrix();
 }
@@ -187,48 +193,55 @@ void Skeleton::drawLeg(int idx, float i) // draw leg: i - +/- 1 axis rotation sp
     const bone talus = *bones[idx+2];
     const bone foot = *bones[idx+3];
     const bone toes = *bones[idx+4];
+    ErrCheck("retrieve leg bones");
 
     glPushMatrix();
     // move complete leg
         // femur
         glTranslated(femur.off.x,femur.off.y,femur.off.z);
-        drawLabel(femur.ch);
+        // drawLabel(femur.ch);
         glRotated(femur.ang.ph,-1,0,0);
         glRotated(femur.ang.th,0,0,i);
         drawBone(femur);
+        ErrCheck("femur");
         glPushMatrix();
             // tibia/fibula
             // move tibfib+talus+foot+toes down the y axis the length of the femur
             glTranslated(tibfib.off.x,tibfib.off.y,tibfib.off.z);
-            drawLabel(tibfib.ch);
+            // drawLabel(tibfib.ch);
             glRotated(tibfib.ang.ph,-1,0,0);
             drawBone(tibfib);
+            ErrCheck("tibfib");
             glPushMatrix();
                 // talus
                 //move talus+foot+toes down the y axis the length of the tibia/fibula
                 glTranslated(talus.off.x,talus.off.y,talus.off.z);
-                drawLabel(talus.ch);
+                // drawLabel(talus.ch);
                 glRotated(talus.ang.th,0,1,0);
                 glRotated(talus.ang.ph,-1,0,0);
                 drawBone(talus);
+                ErrCheck("talus");
                 glPushMatrix();
                     // foot
                     // move foot+toes down along y axis the length of talus
                     glTranslated(foot.off.x,foot.off.y,foot.off.z);
                     //drawLabel(foot.ch);
                     drawBone(foot);
+                    ErrCheck("foot");
                     glPushMatrix();
                         // toes
                         // move toes forward along z axis the length of foot
                         glTranslated(toes.off.x,toes.off.y,toes.off.z);
-                        drawLabel(toes.ch);
+                        // drawLabel(toes.ch);
                         glRotated(toes.ang.ph,-1,0,0);
                         drawBone(toes);
+                        ErrCheck("toes");
                     glPopMatrix();
                 glPopMatrix();
             glPopMatrix();
         glPopMatrix();
     glPopMatrix();
+    ErrCheck("leg");
 }
 void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
 {
@@ -248,7 +261,7 @@ void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation spec
         glPopMatrix();
         // upper arm
         glTranslated(humerus.off.x,humerus.off.y,humerus.off.z);
-        drawLabel(humerus.ch);
+        // drawLabel(humerus.ch);
         glRotated(humerus.ang.th,0,-1,0);
         glRotated(humerus.ang.ph,0,0,i);
         drawBone(humerus);
@@ -257,14 +270,14 @@ void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation spec
             // radius
             glPushMatrix();
                 glTranslated(radius.off.x,radius.off.y,radius.off.z);
-                drawLabel(radius.ch);
+                // drawLabel(radius.ch);
                 glRotated(radius.ang.ph,0,0,i);
                 drawBone(radius);
                 drawBone(ulna);
                 glPushMatrix();
                     // hand
                     glTranslated(hand.off.x,hand.off.y,hand.off.z);
-                    drawLabel(hand.ch);
+                    // drawLabel(hand.ch);
                     glRotated(hand.ang.th,-i,0,0);
                     glRotated(hand.ang.ph,0,0,i);
                     drawBone(hand);
@@ -272,6 +285,7 @@ void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation spec
             glPopMatrix();
         glPopMatrix();
     glPopMatrix();
+    ErrCheck("arm");
 }
 void Skeleton::drawLabel(char ch) // draw char signifier labels at each bone
 {
@@ -281,8 +295,9 @@ void Skeleton::drawLabel(char ch) // draw char signifier labels at each bone
     if(ch == selected_label) glColor3f(0,1,0);
     else glColor3f(1,0,0);
     glRasterPos3d(0,1,2);
-    Print("%c",ch);
+    // Print("%c",ch);
     glEnable(GL_LIGHTING);
+    ErrCheck("label " + ch);
 }
 void Skeleton::setLabel(char ch)
 {
@@ -298,4 +313,257 @@ bool Skeleton::validChar(char ch)
 {
     if(ch >= min_char && ch <= max_char) return true;
     return false;
+}
+
+//-------------------------------------------------------------------
+
+// Set global x
+void Skeleton::setGX(double X)
+{
+    gx = X;
+    update();
+}
+// Set global y
+void Skeleton::setGY(double Y)
+{
+    gy = Y;
+    update();
+}
+// Set global z
+void Skeleton::setGZ(double Z)
+{
+    gz = Z;
+    update();
+}
+void Skeleton::setDIM(double DIM)
+{
+    dim = DIM;
+    update();
+}
+void Skeleton::reset(void)
+{
+    gx = 0;
+    gy = 0;
+    gz = 0;
+    th = 0;
+    ph = 0;
+    dim = 60;
+    emit setDim(dim);
+    emit setAngles("th,ph= "+QString::number(th)+","+QString::number(ph));
+    update();
+}
+void Skeleton::setBone(int idx)
+{
+    int i = idx - 1;
+    if(i < -1 || i >= NUM_BONES) Fatal("%sInvalid idx in setBone\n");
+    selected_bone = i;
+    update();
+}
+
+//-------------------------------------------------------------------
+
+void Skeleton::mousePressEvent(QMouseEvent* e)
+{
+   mouse = true;
+   pos = e->pos();  //  Remember mouse location
+}
+
+//
+//  Mouse released
+//
+void Skeleton::mouseReleaseEvent(QMouseEvent*)
+{
+    mouse = false;
+}
+
+//
+//  Mouse moved
+//
+void Skeleton::mouseMoveEvent(QMouseEvent* e)
+{
+   if (mouse)
+   {
+      QPoint d = e->pos()-pos;  //  Change in mouse location
+      th = (th+d.x())%360;      //  Translate x movement to azimuth
+      ph = (ph+d.y())%360;      //  Translate y movement to elevation
+      pos = e->pos();           //  Remember new location
+      update();                 //  Request redisplay
+   }
+}
+
+//
+//  Mouse wheel
+//
+void Skeleton::wheelEvent(QWheelEvent* e)
+{
+   //  Zoom out
+   if (e->angleDelta().y()<0)
+      setDIM(dim+1);
+   //  Zoom in
+   else if (dim>2)
+      setDIM(dim-1);
+   //  Signal to change dimension spinbox
+   emit setDim(dim);
+}
+
+//-------------------------------------------------------------------
+
+void Skeleton::initializeGL()
+{
+    initializeOpenGLFunctions();
+    glEnable(GL_DEPTH_TEST); //  Enable Z-buffer depth testing
+    setMouseTracking(true);  //  Ask for mouse events
+    initSkeleton();
+}
+
+void Skeleton::resizeGL(int width, int height)
+{
+   //  Window aspect ration
+   asp = (width && height) ? width / (float)height : 1;
+   //  Viewport is whole screen
+   glViewport(0,0,width,height);
+   //  Set projection
+   project();
+}
+
+//
+//  Draw the window
+//
+void Skeleton::paintGL()
+{
+    glClearColor(0,0,0,0);
+    //  Erase the window and the depth buffer
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+    //  Enable Z-buffering in OpenGL
+    glEnable(GL_DEPTH_TEST);
+    //  Undo previous transformations
+    glLoadIdentity();
+
+    glRotatef(ph,1,0,0);
+    glRotatef(th,0,1,0);
+
+    //  Draw the model
+    glPushMatrix();
+    glTranslated(gx,gy,gz);
+    drawSkeleton();
+    ErrCheck(toCStr("skeleton"));
+    glPopMatrix();
+    
+    //  Draw axes - no lighting from here on
+    glDisable(GL_LIGHTING);
+    glColor3f(1,1,1);
+    if (axes)
+    {
+        float f=40;
+        glBegin(GL_LINES);
+        glVertex3f(0,0,0);
+        glVertex3f(f,0,0);
+        glVertex3f(0,0,0);
+        glVertex3f(0,f,0);
+        glVertex3f(0,0,0);
+        glVertex3f(0,0,f);
+        glEnd();
+        //  Label axes
+        // glRasterPos3f(f,0,0);
+        // Print("X");
+        // glRasterPos3f(0,f,0);
+        // Print("Y");
+        // glRasterPos3f(0,0,f);
+        // Print("Z");
+    }
+
+    //  Render the scene and make it visible
+    ErrCheck("display");
+    project();
+    glFlush();
+    //glutSwapBuffers();
+
+    //  Emit signal with display angles and dimensions
+    emit setAngles("th,ph= "+QString::number(th)+","+QString::number(ph));
+
+    //  Done
+    glFlush();
+}
+
+//
+//  Set projection
+//
+void Skeleton::project()
+{
+   //  Orthogonal projection to dim
+   glMatrixMode(GL_PROJECTION);
+   glLoadIdentity();
+   if (asp>1)
+      glOrtho(-dim*asp, +dim*asp, -dim, +dim, -3*dim, +3*dim);
+   else
+      glOrtho(-dim, +dim, -dim/asp, +dim/asp, -3*dim, +3*dim);
+
+   //  Back to model view
+   glMatrixMode(GL_MODELVIEW);
+}
+
+void Skeleton::lighting(int mode)
+{
+    if(light)
+    {
+        //  OpenGL should normalize normal vectors
+        glEnable(GL_NORMALIZE);
+        //  Enable lighting
+        glEnable(GL_LIGHTING);
+        //  Enable light 0
+        glEnable(GL_LIGHT0);
+        //  Light colors
+        float Emission[4] = {0.0,0.0,0.0,1.0};
+        float Ambient[4];
+        float Diffuse[4];
+        float Specular[4];
+        float Position[4];
+        if(mode == 0)
+        {
+            Ambient[0]=.3; Ambient[1]=.3; Ambient[2]=.3; Ambient[3]=1.0;
+            Diffuse[0]=1; Diffuse[1]=1; Diffuse[2]=1; Diffuse[3]=1;
+            Specular[0]=.5; Specular[1]=.5; Specular[2]=.5; Specular[3]=1;
+        }
+        else
+        {
+            Ambient[0]=0; Ambient[1]=1; Ambient[2]=0; Ambient[3]=1.0;
+            Diffuse[0]=0; Diffuse[1]=1; Diffuse[2]=0; Diffuse[3]=1;
+            Specular[0]=0; Specular[1]=1; Specular[2]=0; Specular[3]=1;
+        }
+        if(light == 1)
+        {
+            Position[0] = 1.0;
+            Position[1] = 1.0;
+            Position[2] = 1.0;
+            Position[3] = 0;
+        }
+        else
+        {
+            Position[0] = lx;
+            Position[1] = ly;
+            Position[2] = lz;
+            Position[3] = 1.0;
+            glPushMatrix();
+            glColor3f(0,1,0);
+            glPointSize(3);
+            glBegin(GL_POINTS);
+            glVertex3f(lx,ly,lz);
+            glEnd();
+            glPopMatrix();
+        }
+        float Shinyness[] = {16};
+        //  Set ambient, diffuse, specular components and position of light 0
+        glLightfv(GL_LIGHT0,GL_AMBIENT ,Ambient);
+        glLightfv(GL_LIGHT0,GL_DIFFUSE ,Diffuse);
+        glLightfv(GL_LIGHT0,GL_SPECULAR,Specular);
+        glLightfv(GL_LIGHT0,GL_POSITION,Position);
+        //  Set materials
+        glMaterialfv(GL_FRONT_AND_BACK,GL_SHININESS,Shinyness);
+        glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Diffuse);
+        glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
+        glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+        glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emission);
+    }
+    ErrCheck("lighting");
 }

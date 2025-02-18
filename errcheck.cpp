@@ -8,5 +8,11 @@
 void Skeleton::ErrCheck(const char* where)
 {
    int err = glGetError();
-   if (err) fprintf(stderr,"ERROR: %s [%s]\n",gluErrorString(err),where);
+   if (err) qDebug() << "ERROR: " << qt_error_string(err) << " [" << where << "]\n";
+}
+
+void Skeleton::ErrCheck(string where)
+{
+   int err = glGetError();
+   if (err) qDebug() << "ERROR: " << qt_error_string(err) << " [" << toCStr(where) << "]\n";
 }
