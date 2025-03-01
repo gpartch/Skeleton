@@ -1,6 +1,15 @@
-#  List of header files
-HEADERS = Viewer.hpp Skeleton.hpp
-#  List of source files
-SOURCES = Viewer.cpp Skeleton.cpp cstr.cpp errcheck.cpp fatal.cpp loadmodel.cpp loadply.cpp printVBO.cpp read.cpp skel.cpp
-#  Include OpenGL support
+HEADERS +=  Vec3.hpp \
+            Fatal.hpp \ 
+            Bone.hpp \
+            Skeleton.hpp \
+            Viewer.hpp
+
+SOURCES +=  Fatal.cpp \
+            Bone.cpp \
+            Skeleton.cpp \
+            Viewer.cpp \
+            cstr.cpp \
+            errcheck.cpp \
+            skel.cpp
+
 QT += opengl gui

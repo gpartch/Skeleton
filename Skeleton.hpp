@@ -1,15 +1,15 @@
 #ifndef SKELETON_HPP
 #define SKELETON_HPP
 
-#include <iostream>
-#include <vector>
 #include <sys/types.h>
-#include <memory>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
+#include <memory>
+#include <iostream>
+#include <vector>
 
 #include <QOpenGLWidget>
 #include <QString>
@@ -18,8 +18,7 @@
 #include <QDebug>
 #include <QOpenGLFunctions>
 #include <QOpenGLBuffer>
-
-// #include "VBO.hpp"
+#include <QOpenGLContext>
 
 using std::cout;
 using std::string;
@@ -27,115 +26,45 @@ using std::vector;
 using std::unique_ptr;
 using std::shared_ptr;
 
+#include "Bone.hpp"
+
 //  cos and sin in degrees
 #define Cos(th) cos(3.14159265/180*(th))
 #define Sin(th) sin(3.14159265/180*(th))
 
-struct angles{ int th,ph; }; // angles/degrees of freedom for bone
-struct offset { double x,y,z; }; // offset to the position of a bone
-struct buf_t
-{
-   void* off;
-   int type;
-   int n;
-
-   // buf_t()
-   // {
-   //    off = nullptr;
-   //    type = -1;
-   //    n = -1;
-   // }
-};
-struct vbo_t
-{
-   int type,n,stride;
-   unsigned int buf,ele;
-   buf_t vertex,color,normal,texture;
-   float dim;
-
-   vbo_t()
-   {
-      type = 0;
-      n = 0;
-      stride = 0;
-      buf = 0;
-      ele = 0;
-      dim = 0;
-   }
-};
-struct adj_bone;
-struct bone
-{
-   vbo_t vbo; // vbo for the bone
-   //double len; // length of the bone
-   char ch; // character signifier for which bone it is
-   angles ang; // two angles, th and ph, for two degrees of freedom
-   offset off; // offset to the position of a bone
-   string name; // bone name
-   vector<adj_bone> adj; // adjacent bones
-
-   bone()
-   {
-      ch = 0;
-      name = "";
-      adj = {};
-   }
-   bone(vbo_t v, char c, angles a, offset o,string n)
-   {
-      vbo = v;
-      ch = c;
-      ang = a;
-      off = o;
-      name = n;
-      adj = {};
-   }
-};
-enum bone_dir
-{
-   up = 1, // adj bone is upstream
-   down = -1, // adj bone is downstream
-   neither = 0 // adj bone is neither upstream nor downstream
-};
-struct adj_bone
-{
-   shared_ptr<bone> adj_bone;
-   bone_dir dir;
-};
-
 class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
 {
    Q_OBJECT // magic macro
-   // public: explicit MyGLWindow(QScreen *screen = nullptr);
-   // protected: QOpenGLContext *m_context;
+
    public:
       Skeleton(QWidget* parent= nullptr) : QOpenGLWidget(parent) {};
 
       QSize sizeHint() const {return QSize(500,600);}  //  Default size of widget
 
-      void initSkeleton();
+      // void initSkeleton();
       void resetAng(); // reset all bone angles
-      void printSkeleton(bool v); // print bones information to terminal - set bool v to true for verbose
-      void printBone(int idx, bool v);
+      void printSkeleton(); // print bones information to terminal - set bool v to true for verbose
+      // void printBone(int idx, bool v);
       void setAng(int idx, int th, int ph); // increment bone motion angles
       void drawSkeleton(); // draw the complete skeleton
-      // void drawBone(int idx); // draw bone at origin
-      void drawBone(bone b); // draw bone at origin
+      void drawBone(Bone b); // draw bone at origin
       void drawLeg(int idx, float i); // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
       void drawArm(int idx, float i); // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
-      void drawLabel(char ch); // draw char signifier labels at each bone
-      void setLabel(char ch); // set currently selected label
-      int getBoneIdx(bone b);
+      // void drawLabel(char ch); // draw char signifier labels at each bone
+      // void setLabel(char ch); // set currently selected label
+      pixel getPx();
+      
 
    private:
-      vbo_t readBoneFile(string, int idx); // read data from bone file and create vbo
-      shared_ptr<bone> newBone(int); // retrieve data for and create new bone
+      // vbo_t readBoneFile(string, int idx); // read data from bone file and create vbo
+      // shared_ptr<Bone> newBone(int); // retrieve data for and create new bone
       void initBoneAdj(); // initialize bone adjacencies
       bool validIdx(int idx);
       bool validChar(char ch);
       
       // current selected label
-      char selected_label = -1;
-      QString selected_label_name = "";
+      // char selected_label = -1;
+      // QString selected_label_name = "";
       // number of bones
       const static int NUM_BONES = 24;
       // min char label
@@ -147,11 +76,11 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
       // max idx
       const int max_idx = NUM_BONES - 1;
       // array of pointers to bones
-      shared_ptr<bone> bones[NUM_BONES];
+      shared_ptr<Bone> bones[NUM_BONES];
       // path to directory that contains bone files
-      const string bones_adr = "../bones"; 
+      const QString bones_adr = "../bones"; 
       // file names for bones
-      const string bones_f[NUM_BONES] = 
+      const QString bones_f[NUM_BONES] = 
       {
          "sacrum.vtp.ply",          // pelvis/ tailbone/ lower spine
          "lumbar_spine.vtp.ply",    // lumbar/ lower spine
@@ -183,7 +112,7 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          "r_bofoot.vtp.ply"         // right toes
       };
       // names of bones
-      const string bones_n[NUM_BONES]
+      const QString bones_n[NUM_BONES]
       {
          "pelvis and tailbone",
          "lumbar/ lower spine",
@@ -385,14 +314,14 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
             void ErrCheck(string where);
 
          // fatal.cpp
-            void Fatal(const char* format , ...);
+            // void Fatal(const char* format , ...);
 
          // loadmodel.cpp
-            void DrawVBO(vbo_t vbo); //*
-            void DrawModel(vbo_t vbo); //*
-            float maxdim8(float dim,double xyz[],int n);
-            float maxdim4(float dim,float xyz[],int n);
-            vbo_t LoadModel(const char* file, int inv_norm);
+            // void DrawVBO(vbo_t vbo); //*
+            // void DrawModel(vbo_t vbo); //*
+            // float maxdim8(float dim,double xyz[],int n);
+            // float maxdim4(float dim,float xyz[],int n);
+            // vbo_t LoadModel(const char* file, int inv_norm);
 
          // loadply.c
             // vec3 struct
@@ -402,25 +331,25 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
             // static void addvec(float* V,vec3 v)
             // static int findname(char* name[],int Nvar,const char* v[],int n)
             // static buf_t find(char* name[],off_t off[],int type[],int Nvar,const char* v[],int n)
-            vbo_t LoadPLY(const char* file, int inv_norm); //*
+            // vbo_t LoadPLY(const char* file, int inv_norm); //*
 
          // print.cpp
             void Print(const char* format , ...); //*
 
          // printVBO.cpp
-            void printVBO(vbo_t vbo, int v);
+            //void printVBO(vbo_t vbo, int v);
 
          // projection.cpp
             // void Project(double fov,double asp,double dim); //*
 
          // read.cpp
             // static int CRLF(char ch)
-            char* readline(FILE* f);
-            char* getword(char** line);
-            void readfloat(char* line,int n,float x[]);
-            void readcoord(char* line,int n,float* x[],int* N,int* M);
-            char* readstr(char* line,const char* skip);
-            int compstr(char* line,char* ref);
+            // char* readline(FILE* f);
+            // char* getword(char** line);
+            // void readfloat(char* line,int n,float x[]);
+            // void readcoord(char* line,int n,float* x[],int* N,int* M);
+            // char* readstr(char* line,const char* skip);
+            // int compstr(char* line,char* ref);
 
          int axes=1;         //  Display axes
          int light=1;        //  Toggle light
@@ -461,7 +390,6 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          void wheelEvent(QWheelEvent*);                  //  Mouse wheel
       private:
          void project();   
-         void lighting(int);
 };
 #endif
 
