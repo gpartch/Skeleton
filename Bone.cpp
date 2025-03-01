@@ -60,7 +60,7 @@ void Bone::drawBone(int mode)
     glEnableClientState(GL_NORMAL_ARRAY);
 
     // color
-    glColorPointer(4,GL_UNSIGNED_BYTE,sizeof(vert),(void*)36);
+    glColorPointer(4,GL_UNSIGNED_BYTE,sizeof(vert),(void*)(sizeof(vec3)*2));
     glEnableClientState(GL_COLOR_ARRAY);
 
     // bind ebo
@@ -261,16 +261,16 @@ void Bone::initAdj(vector<adj_bone> adj)
 }
 void Bone::setBoneAng(int th, int ph)
 {
-    ang.th = th;
-    ang.ph = ph;
+    ang.th += th;
+    ang.ph += ph;
 }
 void Bone::rotateBone(ang_dir a, int x, int y, int z)
 {
     if(!main_widget) fatal("bone rotate function accessed without main opengl context");
     
     main_widget->makeCurrent();
-    if(a == t) glRotated(ang.th,x,y,z);
-    else glRotated(ang.ph,x,y,z);
+    if(a == t) {glRotated(ang.th,x,y,z); qDebug() << "rotating " << name << " (th) new angle: " << ang.th;}
+    else {glRotated(ang.ph,x,y,z); qDebug() << "rotating " << name << " (ph) new angle: " << ang.ph;}
 }
 void Bone::offsetBone()
 {
