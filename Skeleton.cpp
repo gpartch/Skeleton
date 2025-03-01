@@ -314,10 +314,10 @@ void Skeleton::wheelEvent(QWheelEvent* e)
     {
         //  Zoom out
         if (e->angleDelta().y()<0)
-            setDIM(dim+1);
+            setDIM(dim+5);
         //  Zoom in
         else if (dim>5)
-            setDIM(dim-1);
+            setDIM(dim-5);
         //  Signal to change dimension spinbox
         emit setDim(dim);
     }
