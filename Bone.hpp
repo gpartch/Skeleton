@@ -59,12 +59,14 @@ class Bone : protected QOpenGLFunctions
         void drawBone(int mode);
         void loadBone();
         void initBone();
-        void initAdj(vector<adj_bone> adj);
+        void initAdj(vector<adj_bone> a);
         void rotateBone(ang_dir a, int x, int y, int z);
         void offsetBone();
         void setBoneAng(int th, int ph);
         int getBoneIdx();
         QString getBoneName();
+        void setFlag(bool f);
+        bool getVisited();
 
     private:
         QString adr; // address of the bone object file
@@ -74,6 +76,7 @@ class Bone : protected QOpenGLFunctions
         int idx; // index/ model number for bone
         vector<adj_bone> adj; // adjacent bones
         int inv_norm;
+        bool visited;
 
         int num_vert; // number of vertices
         int num_tri; // number of triangles
@@ -82,8 +85,6 @@ class Bone : protected QOpenGLFunctions
         unsigned int vbo,ebo; // Vertex and Element buffers
 
         QOpenGLWidget* main_widget = nullptr; // Pointer to main qt widget
-
-        float lx=1.0, ly=1.0, lz=1.0, lth=0;
 };
 
 #endif

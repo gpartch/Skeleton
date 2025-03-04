@@ -11,6 +11,7 @@ Bone::Bone(QOpenGLWidget* widget, QString file_name, QString new_name, angles ne
     idx = new_idx;
     inv_norm = new_inv_norm;
     adj = {};
+    visited = false;
 
     num_vert = 0;
     num_tri = 0;
@@ -77,9 +78,9 @@ void Bone::drawBone(int mode)
     {
         //  white light
         float Emission[]  = {0.0,0.0,0.0,1.0};
-        float Ambient[]   = {0.3,0.3,0.3,1.0};
+        float Ambient[]   = {0.05, 0.05, 0.05, 1.0};
+        float Specular[]  = {1.0,1.0,1.0,1.0};
         float Diffuse[]   = {1.0,1.0,1.0,1.0};
-        float Specular[]  = {0.5,0.5,0.5,1.0};
         float Position[]  = {1.0,1.0,1.0,0.0};
         float Shinyness[] = {16};
         //  Set ambient, diffuse, specular components and position of light 0
@@ -97,11 +98,11 @@ void Bone::drawBone(int mode)
     else
     {
         //  green light
-        float Emission[]  = {0.0,0.0,0.0,1.0};
-        float Ambient[]   = {0.0,1.0,0.0,1.0};
-        float Diffuse[]   = {0.0,1.0,0.0,1.0};
-        float Specular[]  = {0.0,1.0,0.0,1.0};
-        float Position[]  = {1.0,1.0,1.0,0};
+        float Emission[]  = {0.0,0.05,0.0,1.0};
+        float Ambient[]   = {0.0,0.3,0.0,1.0};
+        float Specular[]  = {1.0,1.0,1.0,1.0};
+        float Diffuse[]   = {0.0,0.7,0.0,1.0};
+        float Position[]  = {1.0,1.0,1.0,0.0};
         float Shinyness[] = {16};
         //  Set ambient, diffuse, specular components and position of light 0
         glLightfv(GL_LIGHT0,GL_AMBIENT ,Ambient);
@@ -254,23 +255,35 @@ void Bone::initBone()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,num_tri*sizeof(elem),elements,GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 }
-void Bone::initAdj(vector<adj_bone> adj)
+void Bone::initAdj(vector<adj_bone> a)
 {
-    int len = adj.size();
-    for(int i = 0; i < len; i++) adj.push_back(adj.at(i));
+    adj = a;
 }
 void Bone::setBoneAng(int th, int ph)
 {
     ang.th += th;
     ang.ph += ph;
+
+    // find any bones that move concurrently (bone_dir = neither, not up or down) and add to those as well
+    visited = true;
+    int len = adj.size();
+    for(int i = 0; i < len; i++)
+    {
+        adj_bone adj_b = adj.at(i);
+        // if bone is concurrent, eg moves together, and hasn't been set yet, set th,ph for adj bone
+        if(adj_b.dir == neither && !adj_b.adj_bone->getVisited())
+        {
+            adj_b.adj_bone->setBoneAng(th,ph);
+        }
+    }
 }
 void Bone::rotateBone(ang_dir a, int x, int y, int z)
 {
     if(!main_widget) fatal("bone rotate function accessed without main opengl context");
     
     main_widget->makeCurrent();
-    if(a == t) {glRotated(ang.th,x,y,z); qDebug() << "rotating " << name << " (th) new angle: " << ang.th;}
-    else {glRotated(ang.ph,x,y,z); qDebug() << "rotating " << name << " (ph) new angle: " << ang.ph;}
+    if(a == t) {glRotated(ang.th,x,y,z);}
+    else {glRotated(ang.ph,x,y,z);}
 }
 void Bone::offsetBone()
 {
@@ -287,4 +300,11 @@ QString Bone::getBoneName()
 {
     return name;
 }
-
+void Bone::setFlag(bool f)
+{
+    visited = f;
+}
+bool Bone::getVisited()
+{
+    return visited;
+}
