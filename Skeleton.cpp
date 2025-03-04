@@ -7,6 +7,7 @@ void Skeleton::initBoneAdj()
     adjacency.resize(NUM_BONES);
     for(int i = 0; i < NUM_BONES; i++)
     {
+        //qDebug() << "init adjacency for " << bones[i]->getBoneName();
         // get adjacency list for current bone
         vector<int> adj_list = bones_adj.at(i);
         // get directional information for bones adj to current bone
@@ -15,26 +16,17 @@ void Skeleton::initBoneAdj()
         int num_adj = bones_adj.at(i).size();
         for(int j=0; j<num_adj; j++)
         {
+            // index of adjacent bone in the array of all bones
             int adj_idx = adj_list.at(j);
-            qDebug() << "adj idx: " << adj_idx;
+            // pointer to the adjacent bone
             shared_ptr<Bone> adj_ptr = bones[adj_idx];
+            // direction of the adjacent bone from current bone
             bone_dir adj_dir = dir_list.at(j);
+            
             adj_bone new_adj = {adj_ptr,adj_dir};
             adjacency.at(i).push_back(new_adj);
-            qDebug() << "TEST";
+            //qDebug() << "   " << new_adj.adj_bone->getBoneName();
             if (adj_ptr == nullptr) fatal("null adj ptr");
-            
-            qDebug() << new_adj.adj_bone->getBoneName();
-        }
-        qDebug() << "\n";
-    }
-
-    for(int i = 0; i < NUM_BONES; i++)
-    {
-        int len = bones_adj.at(i).size();
-        for(int j = 0; j < len; j++)
-        {
-            qDebug() << adjacency.at(i).at(j).adj_bone->getBoneIdx();
         }
     }
 
@@ -42,12 +34,12 @@ void Skeleton::initBoneAdj()
     for(int i=0; i<NUM_BONES; i++)
     {
         vector<adj_bone> adjacency_vec = adjacency.at(i);
-        (*bones[i]).initAdj(adjacency_vec);
+        bones[i]->initAdj(adjacency_vec);
     }
 }
 void Skeleton::initializeGL()
 {
-    qDebug() << "initializing...";
+    //qDebug() << "initializing...";
     initializeOpenGLFunctions();
     glEnable(GL_DEPTH_TEST); //  Enable Z-buffer depth testing
     setMouseTracking(true);  //  Ask for mouse events
@@ -56,16 +48,16 @@ void Skeleton::initializeGL()
     // initialize skeleton and bones
     for (int i = 0; i < NUM_BONES; i++)
     {
-        qDebug().noquote() << "building " << bones_n[i];
+        //qDebug().noquote() << "building " << bones_n[i];
         QString bone_file_path = (bones_adr!="" ? (bones_adr + "/" + bones_f[i]) : ("./" + bones_f[i]));
         shared_ptr<Bone> new_bone = std::make_shared<Bone>(this, bone_file_path,bones_n[i], bones_ang[i], bones_off[i], bones_l[ i], i);
         if(new_bone == nullptr) fatal("null bone in newBone: " + bones_n[i]);
         (*new_bone).initBone();
         bones[i] = new_bone;
     }
-    // initBoneAdj();
-    qDebug() << "initialization complete";
-    printSkeleton();
+    initBoneAdj();
+    //qDebug() << "initialization complete";
+    //printSkeleton();
 }
 
 //-------------------------------------------------------------------
@@ -74,9 +66,14 @@ void Skeleton::resetAng() // reset all bone angles
 {
     for(int i = 0; i < NUM_BONES; i++) (*bones[i]).setBoneAng(0,0);
 }
+void Skeleton::resetFlags()
+{
+    for(int i = 0; i < NUM_BONES; i++) bones[i]->setFlag(0);
+}
 void Skeleton::setAng(int idx, int th, int ph) // increment bone motion angles
 {
-    (*bones[idx]).setBoneAng(th,ph);
+    resetFlags();
+    bones[idx]->setBoneAng(th,ph);
 }
 void Skeleton::printSkeleton() // print bones information to terminal
 {
@@ -143,6 +140,7 @@ void Skeleton::drawLeg(int idx, float i) // draw leg: i - +/- 1 axis rotation sp
     // move complete leg
         // femur
         femur.offsetBone();
+        femur.rotateBone(t,0,0,i);
         femur.rotateBone(p,-1,0,0);
         drawBone(femur);
         glPushMatrix();
@@ -194,7 +192,7 @@ void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation spec
         glPopMatrix();
         // upper arm
         humerus.offsetBone();
-        humerus.rotateBone(t,0,-1,0);
+        humerus.rotateBone(t,0,i,0);
         humerus.rotateBone(p,0,0,i);
         drawBone(humerus);
         glPushMatrix();
@@ -264,13 +262,6 @@ void Skeleton::reset(void)
     dim = 60;
     emit setDim(dim);
     emit setAngles("th,ph= "+QString::number(th)+","+QString::number(ph));
-    update();
-}
-void Skeleton::setBone(int idx)
-{
-    int i = idx - 1;
-    if(i < -1 || i >= NUM_BONES) fatal("Invalid idx in setBone\n");
-    selected_bone = i;
     update();
 }
 

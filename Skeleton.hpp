@@ -36,35 +36,27 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
 {
    Q_OBJECT // magic macro
 
+   // SKELETON
    public:
       Skeleton(QWidget* parent= nullptr) : QOpenGLWidget(parent) {};
 
-      QSize sizeHint() const {return QSize(500,600);}  //  Default size of widget
+      QSize sizeHint() const {return QSize(800,800);}  //  Default size of widget
 
-      // void initSkeleton();
       void resetAng(); // reset all bone angles
+      void resetFlags(); // reset bone visited flags
       void printSkeleton(); // print bones information to terminal - set bool v to true for verbose
-      // void printBone(int idx, bool v);
       void setAng(int idx, int th, int ph); // increment bone motion angles
       void drawSkeleton(); // draw the complete skeleton
       void drawBone(Bone b); // draw bone at origin
       void drawLeg(int idx, float i); // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
       void drawArm(int idx, float i); // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
-      // void drawLabel(char ch); // draw char signifier labels at each bone
-      // void setLabel(char ch); // set currently selected label
       pixel getPx();
-      
 
    private:
-      // vbo_t readBoneFile(string, int idx); // read data from bone file and create vbo
-      // shared_ptr<Bone> newBone(int); // retrieve data for and create new bone
       void initBoneAdj(); // initialize bone adjacencies
       bool validIdx(int idx);
       bool validChar(char ch);
       
-      // current selected label
-      // char selected_label = -1;
-      // QString selected_label_name = "";
       // number of bones
       const static int NUM_BONES = 24;
       // min char label
@@ -147,9 +139,9 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
       // eg - how does this limb need to be moved in x,y,z directions relative to parent limb
       const offset bones_off[NUM_BONES]
       {
-         {0,0,3.25},          // 0.A pelvis/ tailbone
-         {0,.75,-3.75},          // 1.B lumbar/ lower spine
-         {0,11.75,.45},        // 2.C torso/ thorax/ mid-spine
+         {0,0,3.25},       // 0.A pelvis/ tailbone
+         {0,.75,-3.75},    // 1.B lumbar/ lower spine
+         {0,11.75,.45},    // 2.C torso/ thorax/ mid-spine
          {0,-16,2},        // 3.D head/ neck/ upper spine
 
          {6,0,1},          // 4.E left shoulder blade
@@ -182,19 +174,19 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
       {
          {1,14,19},  // 0.A pelvis/ tailbone
          {0,2},      // 1.B lumbar/ lower spine
-         {1,3,4,9},      // 2.C torso/ thorax/ mid-spine
+         {1,3,4,9},  // 2.C torso/ thorax/ mid-spine
          {2},        // 3.D head/ neck/ upper spine
 
-         {2,5},        // 4.E left shoulder blade
+         {2,5},      // 4.E left shoulder blade
          {4,6,7},    // 5.F left upper arm
-         {5,7,8},      // 6.G left lower arm (ulna)
-         {5,6,8},      // 7.H left lower arm (radius)
+         {5,7,8},    // 6.G left lower arm (ulna)
+         {5,6,8},    // 7.H left lower arm (radius)
          {6,7},      // 8.I left hand
 
-         {2,10},        // 9.J right shoulder blade
+         {2,10},     // 9.J right shoulder blade
          {9,11,12},  // 10.K right upper arm
-         {10,12,13},     // 11.L right lower arm (ulna)
-         {10,11,13},     // 12.M right lower arm (radius)
+         {10,12,13}, // 11.L right lower arm (ulna)
+         {10,11,13}, // 12.M right lower arm (radius)
          {11,12},    // 13.N right hand
 
          {0,15},     // 14.O left upper leg
@@ -244,34 +236,34 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
       // angles for bone motion
       angles bones_ang[NUM_BONES]
       {
-         {0,0},      // 0.A pelvis/ tailbone
-         {0,-5},      // 1.B lumbar/ lower spine
-         {0,0},      // 2.C torso/ thorax/ mid-spine
-         {0,0},      // 3.D head/ neck/ upper spine
+         {0,0},         // 0.A pelvis/ tailbone
+         {0,-5},        // 1.B lumbar/ lower spine
+         {0,0},         // 2.C torso/ thorax/ mid-spine
+         {0,0},         // 3.D head/ neck/ upper spine
 
-         {0,0},      // 4.E left shoulder blade
-         {0,92},     // 5.F left upper arm
-         {0,0},      // 6.G left lower arm (ulna)
-         {0,-10},    // 7.H left lower arm (radius)
-         {0,0},      // 8.I left hand
+         {0,0},         // 4.E left shoulder blade
+         {0,92},        // 5.F left upper arm
+         {0,0},         // 6.G left lower arm (ulna)
+         {-10,-10},     // 7.H left lower arm (radius)
+         {0,0},         // 8.I left hand
 
-         {0,0},      // 9.J right shoulder blade
-         {0,92},     // 10.K right upper arm
-         {0,0},      // 11.L right lower arm (ulna)
-         {0,-10},    // 12.M right lower arm (radius)
-         {0,0},      // 13.N right hand
+         {0,0},         // 9.J right shoulder blade
+         {0,92},        // 10.K right upper arm
+         {-10,-10},     // 11.L right lower arm (ulna)
+         {-10,-10},     // 12.M right lower arm (radius)
+         {0,0},         // 13.N right hand
 
-         {0,0},      // 14.O left upper leg
-         {0,0},      // 15.P left lower leg
-         {0,0},      // 16.Q left ball of foot
-         {0,0},      // 17.R left foot
-         {0,0},      // 18.S left toes
+         {0,0},         // 14.O left upper leg
+         {0,0},         // 15.P left lower leg
+         {0,0},         // 16.Q left ball of foot
+         {0,0},         // 17.R left foot
+         {0,0},         // 18.S left toes
 
-         {0,0},      // 19.T right upper leg
-         {0,0},      // 20.U right lower leg
-         {0,0},      // 21.V right ball of foot
-         {0,0},      // 22.W right foot
-         {0,0}       // 23.X right toes
+         {0,0},         // 19.T right upper leg
+         {0,0},         // 20.U right lower leg
+         {0,0},         // 21.V right ball of foot
+         {0,0},         // 22.W right foot
+         {0,0}          // 23.X right toes
       };
       // whether or not to invert the normals for a particular bone - 1:yes, 0:no
       int bones_l[NUM_BONES]
@@ -305,6 +297,8 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          1, // 22.W right foot
          1 // 23.X right toes
       };
+      
+      // QT WIDGET
       public:
          // cstr.cpp
             char * toCStr(string str);
@@ -313,43 +307,8 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
             void ErrCheck(const char* where); //*
             void ErrCheck(string where);
 
-         // fatal.cpp
-            // void Fatal(const char* format , ...);
-
-         // loadmodel.cpp
-            // void DrawVBO(vbo_t vbo); //*
-            // void DrawModel(vbo_t vbo); //*
-            // float maxdim8(float dim,double xyz[],int n);
-            // float maxdim4(float dim,float xyz[],int n);
-            // vbo_t LoadModel(const char* file, int inv_norm);
-
-         // loadply.c
-            // vec3 struct
-            // static vec3 sub(vec3 v1,vec3 v2)
-            // static vec3 cross(vec3 v1,vec3 v2)
-            // static vec3 normalize(vec3 v)
-            // static void addvec(float* V,vec3 v)
-            // static int findname(char* name[],int Nvar,const char* v[],int n)
-            // static buf_t find(char* name[],off_t off[],int type[],int Nvar,const char* v[],int n)
-            // vbo_t LoadPLY(const char* file, int inv_norm); //*
-
          // print.cpp
             void Print(const char* format , ...); //*
-
-         // printVBO.cpp
-            //void printVBO(vbo_t vbo, int v);
-
-         // projection.cpp
-            // void Project(double fov,double asp,double dim); //*
-
-         // read.cpp
-            // static int CRLF(char ch)
-            // char* readline(FILE* f);
-            // char* getword(char** line);
-            // void readfloat(char* line,int n,float x[]);
-            // void readcoord(char* line,int n,float* x[],int* N,int* M);
-            // char* readstr(char* line,const char* skip);
-            // int compstr(char* line,char* ref);
 
          int axes=1;         //  Display axes
          int light=1;        //  Toggle light
@@ -358,14 +317,13 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          int ph=0;           //  Elevation of view angle
          int fov=55;         //  Field of view (for perspective)
          int mx=0,my=0;      //  Mouse coordinates
-         bool   mouse;       //  Mouse pressed
+         bool   mouse = 0;       //  Mouse pressed
          QPoint pos;         //  Mouse position
          double asp=1;       //  Aspect ratio
          double dim=60;     //  Size of world
          char label = 'A';
          int selected_bone = -1;
          int gx=0,gy=0,gz=0;
-         float lx=1.0, ly=1.0, lz=1.0, lth=0;
       
       public slots:
          void setGX(double X);      //  Slot to set x0
@@ -373,7 +331,31 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          void setGZ(double Z);      //  Slot to set z0
          void setDIM(double DIM);    //  Slot to set dim
          void reset(void);           //  Reset view
-         void setBone(int idx); // set selected bone idx
+
+         void setPelvis()     {selected_bone = 0; update();};
+         void setLumbar()     {selected_bone = 1; update();};
+         void setTorso()      {selected_bone = 2; update();};
+         void setHead()       {selected_bone = 3; update();};
+         void setLScapula()   {selected_bone = 4; update();};
+         void setLHumerus()   {selected_bone = 5; update();};
+         void setLUlna()      {selected_bone = 6; update();};
+         void setLRadius()    {selected_bone = 7; update();};
+         void setLHand()      {selected_bone = 8; update();};
+         void setRScapula()   {selected_bone = 9; update();};
+         void setRHumerus()   {selected_bone = 10; update();};
+         void setRUlna()      {selected_bone = 11; update();};
+         void setRRadius()    {selected_bone = 12; update();};
+         void setRHand()      {selected_bone = 13; update();};
+         void setLFemur()     {selected_bone = 14; update();};
+         void setLTibFib()    {selected_bone = 15; update();};
+         void setLTalus()     {selected_bone = 16; update();};
+         void setLFoot()      {selected_bone = 17; update();};
+         void setLToes()      {selected_bone = 18; update();};
+         void setRFemur()     {selected_bone = 19; update();};
+         void setRTibFib()    {selected_bone = 20; update();};
+         void setRTalus()     {selected_bone = 21; update();};
+         void setRFoot()      {selected_bone = 22; update();};
+         void setRToes()      {selected_bone = 23; update();};
 
       signals:
          void setAngles(QString text);  //  Signal for display angles
