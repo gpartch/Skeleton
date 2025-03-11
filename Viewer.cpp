@@ -46,9 +46,6 @@ Viewer::Viewer(QWidget* parent)
    }
    bbtng->setExclusive(true);
 
-   QPushButton* reset_bones = new QPushButton("X");
-   reset_bones->setBaseSize(10,10);
-
    // connect viewer signals to skeleton
    connect(bbtng, SIGNAL(idClicked(int)), skeleton, SLOT(setSelectedBone(int)));
 
@@ -148,8 +145,6 @@ Viewer::Viewer(QWidget* parent)
    blay->addWidget(l_ulna,3,4, Qt::AlignCenter | Qt::AlignRight);          
    blay->addWidget(l_radius,3,5, Qt::AlignCenter | Qt::AlignLeft);         
    blay->addWidget(l_hand,4,4,1,2, Qt::AlignCenter | Qt::AlignTop);     
-
-   if(bone_selected == true) layout->addWidget(reset_bones,3,1); 
 
    bbox->setLayout(blay);
    layout->addWidget(bbox,2,1);
