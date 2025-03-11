@@ -12,4 +12,4 @@ SOURCES +=  Fatal.cpp \
             errcheck.cpp \
             skel.cpp
 
-QT += opengl gui
+QT += opengl gui widgets

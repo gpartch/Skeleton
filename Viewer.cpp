@@ -37,46 +37,26 @@ Viewer::Viewer(QWidget* parent)
    //  Pushbutton to reset view angle
    QPushButton* reset = new QPushButton("Reset");
 
-   //  Connect valueChanged() signals to Skeleton slots
-   connect(gx           , SIGNAL(valueChanged(double)) , skeleton , SLOT(setGX(double)));
-   connect(gy           , SIGNAL(valueChanged(double)) , skeleton , SLOT(setGY(double)));
-   connect(gz           , SIGNAL(valueChanged(double)) , skeleton , SLOT(setGZ(double)));
-   connect(d            , SIGNAL(valueChanged(double)) , skeleton , SLOT(setDIM(double)));
-   connect(reset        , SIGNAL(clicked(void))        , skeleton , SLOT(reset(void)));
-   
-   connect(pelvis       , SIGNAL(clicked(void)), skeleton, SLOT(setPelvis(void)));
-   connect(lumbar       , SIGNAL(clicked(void)), skeleton, SLOT(setLumbar(void)));
-   connect(torso        , SIGNAL(clicked(void)), skeleton, SLOT(setTorso(void)));
-   connect(head         , SIGNAL(clicked(void)), skeleton, SLOT(setHead(void)));
+   NUM_BONES = skeleton->getNumBones();
+   for(int i = 0; i < NUM_BONES; i++)
+   {
+      bones.at(i)->setCheckable(true);
+      bbtng->addButton(bones.at(i));
+      bbtng->setId(bones.at(i), i);
+   }
+   bbtng->setExclusive(true);
 
-   connect(l_scapula    , SIGNAL(clicked(void)), skeleton, SLOT(setLScapula(void)));
-   connect(l_humerus    , SIGNAL(clicked(void)), skeleton, SLOT(setLHumerus(void)));
-   connect(l_ulna       , SIGNAL(clicked(void)), skeleton, SLOT(setLUlna(void)));
-   connect(l_radius     , SIGNAL(clicked(void)), skeleton, SLOT(setLRadius(void)));
-   connect(l_hand       , SIGNAL(clicked(void)), skeleton, SLOT(setLHand(void)));
+   QPushButton* reset_bones = new QPushButton("X");
+   reset_bones->setBaseSize(10,10);
 
-   connect(r_scapula    , SIGNAL(clicked(void)), skeleton, SLOT(setRScapula(void)));
-   connect(r_humerus    , SIGNAL(clicked(void)), skeleton, SLOT(setRHumerus(void)));
-   connect(r_ulna       , SIGNAL(clicked(void)), skeleton, SLOT(setRUlna(void)));
-   connect(r_radius     , SIGNAL(clicked(void)), skeleton, SLOT(setRRadius(void)));
-   connect(r_hand       , SIGNAL(clicked(void)), skeleton, SLOT(setRHand(void)));
-
-   connect(l_femur      , SIGNAL(clicked(void)), skeleton, SLOT(setLFemur(void)));
-   connect(l_tibfib     , SIGNAL(clicked(void)), skeleton, SLOT(setLTibFib(void)));
-   connect(l_talus      , SIGNAL(clicked(void)), skeleton, SLOT(setLTalus(void)));
-   connect(l_foot       , SIGNAL(clicked(void)), skeleton, SLOT(setLFoot(void)));
-   connect(l_toes       , SIGNAL(clicked(void)), skeleton, SLOT(setLToes(void)));
-
-   connect(r_femur      , SIGNAL(clicked(void)), skeleton, SLOT(setRFemur(void)));
-   connect(r_tibfib     , SIGNAL(clicked(void)), skeleton, SLOT(setRTibFib(void)));
-   connect(r_talus      , SIGNAL(clicked(void)), skeleton, SLOT(setRTalus(void)));
-   connect(r_foot       , SIGNAL(clicked(void)), skeleton, SLOT(setRFoot(void)));
-   connect(r_toes       , SIGNAL(clicked(void)), skeleton, SLOT(setRToes(void)));
-   
+   // connect viewer signals to skeleton
+   connect(bbtng, SIGNAL(idClicked(int)), skeleton, SLOT(setSelectedBone(int)));
 
    //  Connect skeleton signals to display widgets
    connect(skeleton , SIGNAL(setAngles(QString)) , angl , SLOT(setText(QString)));
    connect(skeleton , SIGNAL(setDim(double))   , d    , SLOT(setValue(double)));
+   connect(skeleton, SIGNAL(resetBoneSelectedBtn(int)), this, SLOT(resetBoneSelectedBtn(int)));
+   
 
    //  Set layout of child widgets
    QGridLayout* layout = new QGridLayout;
@@ -140,41 +120,54 @@ Viewer::Viewer(QWidget* parent)
    QGroupBox* bbox = new QGroupBox("Bones");
    QGridLayout* blay = new QGridLayout;
 
-   blay->addWidget(r_scapula,1,0,1,2, Qt::AlignCenter | Qt::AlignBottom);
-   blay->addWidget(r_humerus,2,0,1,2, Qt::AlignCenter);
-   blay->addWidget(r_radius,3,0, Qt::AlignCenter | Qt::AlignRight);
-   blay->addWidget(r_ulna,3,1, Qt::AlignCenter | Qt::AlignLeft);
-   blay->addWidget(r_hand,4,0,1,2, Qt::AlignCenter | Qt::AlignTop);
+   blay->addWidget(r_scapula,1,0,1,2, Qt::AlignCenter | Qt::AlignBottom);  
+   blay->addWidget(r_humerus,2,0,1,2, Qt::AlignCenter);                    
+   blay->addWidget(r_radius,3,0, Qt::AlignCenter | Qt::AlignRight);        
+   blay->addWidget(r_ulna,3,1, Qt::AlignCenter | Qt::AlignLeft);           
+   blay->addWidget(r_hand,4,0,1,2, Qt::AlignCenter | Qt::AlignTop);        
 
-   blay->addWidget(head,0,2,1,2, Qt::AlignCenter);
-   blay->addWidget(torso,1,2,1,2, Qt::AlignCenter);
-   blay->addWidget(lumbar,2,2,1,2, Qt::AlignCenter);
-   blay->addWidget(pelvis,3,2,1,2, Qt::AlignCenter);
+   blay->addWidget(head,0,2,1,2, Qt::AlignCenter);                         
+   blay->addWidget(torso,1,2,1,2, Qt::AlignCenter);                        
+   blay->addWidget(lumbar,2,2,1,2, Qt::AlignCenter);                       
+   blay->addWidget(pelvis,3,2,1,2, Qt::AlignCenter);                       
 
-   blay->addWidget(r_femur,4,2, Qt::AlignCenter);
-   blay->addWidget(r_tibfib,5,2, Qt::AlignCenter);
-   blay->addWidget(r_talus,6,2, Qt::AlignCenter);
-   blay->addWidget(r_foot,7,2, Qt::AlignCenter);
-   blay->addWidget(r_toes,8,2, Qt::AlignCenter);
+   blay->addWidget(r_femur,4,2, Qt::AlignCenter);                          
+   blay->addWidget(r_tibfib,5,2, Qt::AlignCenter);                         
+   blay->addWidget(r_talus,6,2, Qt::AlignCenter);                          
+   blay->addWidget(r_foot,7,2, Qt::AlignCenter);                           
+   blay->addWidget(r_toes,8,2, Qt::AlignCenter);                           
 
-   blay->addWidget(l_femur,4,3, Qt::AlignCenter);
-   blay->addWidget(l_tibfib,5,3, Qt::AlignCenter);
-   blay->addWidget(l_talus,6,3, Qt::AlignCenter);
-   blay->addWidget(l_foot,7,3, Qt::AlignCenter);
-   blay->addWidget(l_toes,8,3, Qt::AlignCenter);
+   blay->addWidget(l_femur,4,3, Qt::AlignCenter);                          
+   blay->addWidget(l_tibfib,5,3, Qt::AlignCenter);                         
+   blay->addWidget(l_talus,6,3, Qt::AlignCenter);                          
+   blay->addWidget(l_foot,7,3, Qt::AlignCenter);                           
+   blay->addWidget(l_toes,8,3, Qt::AlignCenter);                           
 
-   blay->addWidget(l_scapula,1,4,1,2, Qt::AlignCenter | Qt::AlignBottom);
-   blay->addWidget(l_humerus,2,4,1,2, Qt::AlignCenter);
-   blay->addWidget(l_ulna,3,4, Qt::AlignCenter | Qt::AlignRight);
-   blay->addWidget(l_radius,3,5, Qt::AlignCenter | Qt::AlignLeft);
-   blay->addWidget(l_hand,4,4,1,2, Qt::AlignCenter | Qt::AlignTop);
+   blay->addWidget(l_scapula,1,4,1,2, Qt::AlignCenter | Qt::AlignBottom);  
+   blay->addWidget(l_humerus,2,4,1,2, Qt::AlignCenter);                    
+   blay->addWidget(l_ulna,3,4, Qt::AlignCenter | Qt::AlignRight);          
+   blay->addWidget(l_radius,3,5, Qt::AlignCenter | Qt::AlignLeft);         
+   blay->addWidget(l_hand,4,4,1,2, Qt::AlignCenter | Qt::AlignTop);     
 
-   //QLabel* selected_bone = new QLabel();
+   if(bone_selected == true) layout->addWidget(reset_bones,3,1); 
 
    bbox->setLayout(blay);
    layout->addWidget(bbox,2,1);
 
-   // void QGridLayout::addWidget(QWidget *widget, int row, int column, int rowSpan, int columnSpan, Qt::Alignment alignment = 0);
    //  Overall layout
    setLayout(layout);
+}
+
+void Viewer::resetBoneSelectedBtn(int b)
+{
+   // have to disable exclusive, otherwise qt won't let you uncheck all buttons
+   bbtng->setExclusive(false);
+   for(int i = 0; i<NUM_BONES; i++)
+   {
+      if(i != b) 
+      {
+         bones.at(i)->setChecked(false);
+      }
+   }
+   bbtng->setExclusive(true);
 }

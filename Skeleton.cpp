@@ -39,7 +39,6 @@ void Skeleton::initBoneAdj()
 }
 void Skeleton::initializeGL()
 {
-    //qDebug() << "initializing...";
     initializeOpenGLFunctions();
     glEnable(GL_DEPTH_TEST); //  Enable Z-buffer depth testing
     setMouseTracking(true);  //  Ask for mouse events
@@ -56,8 +55,6 @@ void Skeleton::initializeGL()
         bones[i] = new_bone;
     }
     initBoneAdj();
-    //qDebug() << "initialization complete";
-    //printSkeleton();
 }
 
 //-------------------------------------------------------------------
@@ -393,23 +390,6 @@ void Skeleton::paintGL()
         glVertex3f(0,0,f);
         glEnd();
     }
-    
-    // glFlush();
-    // pixel p = getPx();
-    // if(p.a && p.a != 255)
-    // {
-    //     glPushMatrix();
-    //     glColor3d(1,0,0);
-    //     glPointSize(5);
-    //     glBegin(GL_POINTS);
-    //     glVertex3f(pos.x(),pos.y(),10);
-    //     glEnd();
-    //     glPopMatrix();
-    // }
-    // glColor3d(1,0,0);
-    // glBegin(GL_POINTS);
-    // glVertex3f(pos.x(),pos.y(),10);
-    // glEnd();
 
     //  Render the scene and make it visible
     ErrCheck("display");
@@ -451,4 +431,23 @@ pixel Skeleton::getPx()
    glReadPixels(x,y,1,1,GL_DEPTH_COMPONENT,GL_FLOAT,&z);
    vec3 p(x,y,z);
    return {.r=c[0],.g=c[1],.b=c[2],.a=c[3],.p=p};
+}
+
+//-------------------------------------------------------------------------------
+
+// set selected bone to idx, or if idx is already selected set to unselected (-1)
+void Skeleton::setSelectedBone(int idx) 
+{
+if(idx != selected_bone) 
+{
+    selected_bone = idx; 
+    emit resetBoneSelectedBtn(idx);
+    update();
+}
+else
+{
+    selected_bone = -1;
+    emit resetBoneSelectedBtn(-1);
+    update();
+}
 }

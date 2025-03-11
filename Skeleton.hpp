@@ -51,6 +51,7 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
       void drawLeg(int idx, float i); // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
       void drawArm(int idx, float i); // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
       pixel getPx();
+      int getNumBones() {return NUM_BONES;}
 
    private:
       void initBoneAdj(); // initialize bone adjacencies
@@ -331,35 +332,13 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          void setGZ(double Z);      //  Slot to set z0
          void setDIM(double DIM);    //  Slot to set dim
          void reset(void);           //  Reset view
-
-         void setPelvis()     {selected_bone = 0; update();};
-         void setLumbar()     {selected_bone = 1; update();};
-         void setTorso()      {selected_bone = 2; update();};
-         void setHead()       {selected_bone = 3; update();};
-         void setLScapula()   {selected_bone = 4; update();};
-         void setLHumerus()   {selected_bone = 5; update();};
-         void setLUlna()      {selected_bone = 6; update();};
-         void setLRadius()    {selected_bone = 7; update();};
-         void setLHand()      {selected_bone = 8; update();};
-         void setRScapula()   {selected_bone = 9; update();};
-         void setRHumerus()   {selected_bone = 10; update();};
-         void setRUlna()      {selected_bone = 11; update();};
-         void setRRadius()    {selected_bone = 12; update();};
-         void setRHand()      {selected_bone = 13; update();};
-         void setLFemur()     {selected_bone = 14; update();};
-         void setLTibFib()    {selected_bone = 15; update();};
-         void setLTalus()     {selected_bone = 16; update();};
-         void setLFoot()      {selected_bone = 17; update();};
-         void setLToes()      {selected_bone = 18; update();};
-         void setRFemur()     {selected_bone = 19; update();};
-         void setRTibFib()    {selected_bone = 20; update();};
-         void setRTalus()     {selected_bone = 21; update();};
-         void setRFoot()      {selected_bone = 22; update();};
-         void setRToes()      {selected_bone = 23; update();};
+         void setSelectedBone(int idx); // set selected bone to idx, or if idx is already selected set to unselected (-1)
+         
 
       signals:
          void setAngles(QString text);  //  Signal for display angles
          void setDim(double dim);     //  Signal for display dimensions
+         void resetBoneSelectedBtn(int b); // reset all buttons checked value to false except idx
       
       // GL functionality
       protected:
@@ -410,6 +389,5 @@ BONES:
 
 /*
 TO-DO:
-- add code to skeleton class to call display functions appropriately to draw skeleton
-- add better controls with qt
+
 */

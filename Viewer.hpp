@@ -11,6 +11,7 @@
 #include <QComboBox>
 #include <QGridLayout>
 #include <QSizePolicy>
+#include <QDebug>
 
 class Viewer : public QWidget
 {
@@ -50,12 +51,18 @@ class Viewer : public QWidget
         QPushButton* r_talus = new QPushButton(" "); // ball of foot
         QPushButton* r_foot = new QPushButton(" ");
         QPushButton* r_toes = new QPushButton(" ");
+
+        QButtonGroup* bbtng = new QButtonGroup;
+        QList<QPushButton*> bones = {pelvis, lumbar, torso, head, l_scapula, l_humerus, l_ulna, l_radius, l_hand, r_scapula, r_humerus, r_ulna, r_radius, r_hand, l_femur, l_tibfib, l_talus, l_foot, l_toes, r_femur, r_tibfib, r_talus, r_foot, r_toes};
+
+        bool bone_selected = -1;
+        int NUM_BONES;
     
     public:
         Viewer(QWidget* parent=0); //  Constructor
 
     private slots:
-        // void setBone(const QString&);
+        void resetBoneSelectedBtn(int b);
 };
 
 #endif
