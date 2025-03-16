@@ -61,7 +61,7 @@ void Skeleton::initializeGL()
 
 void Skeleton::resetAng() // reset all bone angles
 {
-    for(int i = 0; i < NUM_BONES; i++) (*bones[i]).setBoneAng(0,0);
+    for(int i = 0; i < NUM_BONES; i++) (*bones[i]).incrementBoneAng(0,0);
 }
 void Skeleton::resetFlags()
 {
@@ -70,7 +70,7 @@ void Skeleton::resetFlags()
 void Skeleton::setAng(int idx, int th, int ph) // increment bone motion angles
 {
     resetFlags();
-    bones[idx]->setBoneAng(th,ph);
+    bones[idx]->incrementBoneAng(th,ph);
 }
 void Skeleton::printSkeleton() // print bones information to terminal
 {
@@ -259,6 +259,9 @@ void Skeleton::reset(void)
     dim = 60;
     emit setDim(dim);
     emit setAngles("th,ph= "+QString::number(th)+","+QString::number(ph));
+    emit setWidgetGX(gx);
+    emit setWidgetGY(gy);
+    emit setWidgetGZ(gz);
     update();
 }
 
@@ -438,16 +441,25 @@ pixel Skeleton::getPx()
 // set selected bone to idx, or if idx is already selected set to unselected (-1)
 void Skeleton::setSelectedBone(int idx) 
 {
-if(idx != selected_bone) 
-{
-    selected_bone = idx; 
-    emit resetBoneSelectedBtn(idx);
-    update();
+    if(idx != selected_bone) 
+    {
+        selected_bone = idx; 
+        emit resetBoneSelectedBtn(idx);
+        update();
+    }
+    else
+    {
+        selected_bone = -1;
+        emit resetBoneSelectedBtn(-1);
+        update();
+    }
 }
-else
+
+void Skeleton::resetBones(void)
 {
-    selected_bone = -1;
-    emit resetBoneSelectedBtn(-1);
+    for(int i = 0; i < NUM_BONES; i++)
+    {
+        bones[i]->setBoneAng(bones_ang[i].th, bones_ang[i].ph);
+    }
     update();
-}
 }

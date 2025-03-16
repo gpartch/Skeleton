@@ -62,11 +62,12 @@ class Bone : protected QOpenGLFunctions
         void initAdj(vector<adj_bone> a);
         void rotateBone(ang_dir a, int x, int y, int z);
         void offsetBone();
-        void setBoneAng(int th, int ph);
+        void incrementBoneAng(int th, int ph);
         int getBoneIdx();
         QString getBoneName();
         void setFlag(bool f);
         bool getVisited();
+        void setBoneAng(int th, int ph);
 
     private:
         QString adr; // address of the bone object file

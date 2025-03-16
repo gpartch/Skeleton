@@ -259,7 +259,7 @@ void Bone::initAdj(vector<adj_bone> a)
 {
     adj = a;
 }
-void Bone::setBoneAng(int th, int ph)
+void Bone::incrementBoneAng(int th, int ph)
 {
     ang.th += th;
     ang.ph += ph;
@@ -273,7 +273,7 @@ void Bone::setBoneAng(int th, int ph)
         // if bone is concurrent, eg moves together, and hasn't been set yet, set th,ph for adj bone
         if(adj_b.dir == neither && !adj_b.adj_bone->getVisited())
         {
-            adj_b.adj_bone->setBoneAng(th,ph);
+            adj_b.adj_bone->incrementBoneAng(th,ph);
         }
     }
 }
@@ -307,4 +307,10 @@ void Bone::setFlag(bool f)
 bool Bone::getVisited()
 {
     return visited;
+}
+
+void Bone::setBoneAng(int th, int ph)
+{
+    ang.th = th;
+    ang.ph = ph;
 }
