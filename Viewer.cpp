@@ -37,6 +37,8 @@ Viewer::Viewer(QWidget* parent)
    //  Pushbutton to reset view angle
    QPushButton* reset = new QPushButton("Reset");
 
+   QPushButton* reset_bones = new QPushButton("Reset Bones");
+
    NUM_BONES = skeleton->getNumBones();
    for(int i = 0; i < NUM_BONES; i++)
    {
@@ -54,6 +56,16 @@ Viewer::Viewer(QWidget* parent)
    connect(skeleton , SIGNAL(setDim(double))   , d    , SLOT(setValue(double)));
    connect(skeleton, SIGNAL(resetBoneSelectedBtn(int)), this, SLOT(resetBoneSelectedBtn(int)));
    
+   connect(skeleton, SIGNAL(setWidgetGX(double)), gx, SLOT(setValue(double)));
+   connect(skeleton, SIGNAL(setWidgetGY(double)), gy, SLOT(setValue(double)));
+   connect(skeleton, SIGNAL(setWidgetGZ(double)), gz, SLOT(setValue(double)));
+
+   connect(gx           , SIGNAL(valueChanged(double)) , skeleton , SLOT(setGX(double)));
+   connect(gy           , SIGNAL(valueChanged(double)) , skeleton , SLOT(setGY(double)));
+   connect(gz           , SIGNAL(valueChanged(double)) , skeleton , SLOT(setGZ(double)));
+   connect(d            , SIGNAL(valueChanged(double)) , skeleton , SLOT(setDIM(double)));
+   connect(reset        , SIGNAL(clicked(void))        , skeleton , SLOT(reset(void)));
+   connect(reset_bones        , SIGNAL(clicked(void))        , skeleton , SLOT(resetBones(void)));
 
    //  Set layout of child widgets
    QGridLayout* layout = new QGridLayout;
@@ -148,6 +160,8 @@ Viewer::Viewer(QWidget* parent)
 
    bbox->setLayout(blay);
    layout->addWidget(bbox,2,1);
+
+   layout->addWidget(reset_bones,3,1);
 
    //  Overall layout
    setLayout(layout);

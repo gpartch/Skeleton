@@ -52,26 +52,22 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = Viewer.cpp \
+SOURCES       = Fatal.cpp \
+		Bone.cpp \
 		Skeleton.cpp \
+		Viewer.cpp \
 		cstr.cpp \
 		errcheck.cpp \
-		fatal.cpp \
-		loadmodel.cpp \
-		loadply.cpp \
-		printVBO.cpp \
-		read.cpp \
-		skel.cpp moc_Viewer.cpp
-OBJECTS       = Viewer.o \
+		skel.cpp moc_Skeleton.cpp \
+		moc_Viewer.cpp
+OBJECTS       = Fatal.o \
+		Bone.o \
 		Skeleton.o \
+		Viewer.o \
 		cstr.o \
 		errcheck.o \
-		fatal.o \
-		loadmodel.o \
-		loadply.o \
-		printVBO.o \
-		read.o \
 		skel.o \
+		moc_Skeleton.o \
 		moc_Viewer.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
@@ -149,16 +145,16 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
-		Skeleton.pro Viewer.hpp \
-		Skeleton.hpp Viewer.cpp \
+		Skeleton.pro Vec3.hpp \
+		Fatal.hpp \
+		Bone.hpp \
+		Skeleton.hpp \
+		Viewer.hpp Fatal.cpp \
+		Bone.cpp \
 		Skeleton.cpp \
+		Viewer.cpp \
 		cstr.cpp \
 		errcheck.cpp \
-		fatal.cpp \
-		loadmodel.cpp \
-		loadply.cpp \
-		printVBO.cpp \
-		read.cpp \
 		skel.cpp
 QMAKE_TARGET  = Skeleton
 DESTDIR       = 
@@ -341,8 +337,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents Viewer.hpp Skeleton.hpp $(DISTDIR)/
-	$(COPY_FILE) --parents Viewer.cpp Skeleton.cpp cstr.cpp errcheck.cpp fatal.cpp loadmodel.cpp loadply.cpp printVBO.cpp read.cpp skel.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents Vec3.hpp Fatal.hpp Bone.hpp Skeleton.hpp Viewer.hpp $(DISTDIR)/
+	$(COPY_FILE) --parents Fatal.cpp Bone.cpp Skeleton.cpp Viewer.cpp cstr.cpp errcheck.cpp skel.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -374,9 +370,17 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_Viewer.cpp
+compiler_moc_header_make_all: moc_Skeleton.cpp moc_Viewer.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_Viewer.cpp
+	-$(DEL_FILE) moc_Skeleton.cpp moc_Viewer.cpp
+moc_Skeleton.cpp: Skeleton.hpp \
+		Bone.hpp \
+		Fatal.hpp \
+		Vec3.hpp \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include '/home/gabriellepartch/SMPL Research Project/skeleton/moc_predefs.h' -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I'/home/gabriellepartch/SMPL Research Project/skeleton' -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtOpenGL -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/11 -I/usr/include/x86_64-linux-gnu/c++/11 -I/usr/include/c++/11/backward -I/usr/lib/gcc/x86_64-linux-gnu/11/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Skeleton.hpp -o moc_Skeleton.cpp
+
 moc_Viewer.cpp: Viewer.hpp \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
@@ -398,37 +402,48 @@ compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean
 
 ####### Compile
 
-Viewer.o: Viewer.cpp Viewer.hpp \
-		Skeleton.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Viewer.o Viewer.cpp
+Fatal.o: Fatal.cpp Fatal.hpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Fatal.o Fatal.cpp
 
-Skeleton.o: Skeleton.cpp Skeleton.hpp
+Bone.o: Bone.cpp Bone.hpp \
+		Fatal.hpp \
+		Vec3.hpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Bone.o Bone.cpp
+
+Skeleton.o: Skeleton.cpp Skeleton.hpp \
+		Bone.hpp \
+		Fatal.hpp \
+		Vec3.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Skeleton.o Skeleton.cpp
 
-cstr.o: cstr.cpp Skeleton.hpp
+Viewer.o: Viewer.cpp Viewer.hpp \
+		Skeleton.hpp \
+		Bone.hpp \
+		Fatal.hpp \
+		Vec3.hpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Viewer.o Viewer.cpp
+
+cstr.o: cstr.cpp Skeleton.hpp \
+		Bone.hpp \
+		Fatal.hpp \
+		Vec3.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o cstr.o cstr.cpp
 
-errcheck.o: errcheck.cpp Skeleton.hpp
+errcheck.o: errcheck.cpp Skeleton.hpp \
+		Bone.hpp \
+		Fatal.hpp \
+		Vec3.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o errcheck.o errcheck.cpp
 
-fatal.o: fatal.cpp Skeleton.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o fatal.o fatal.cpp
-
-loadmodel.o: loadmodel.cpp Skeleton.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o loadmodel.o loadmodel.cpp
-
-loadply.o: loadply.cpp Skeleton.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o loadply.o loadply.cpp
-
-printVBO.o: printVBO.cpp Skeleton.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o printVBO.o printVBO.cpp
-
-read.o: read.cpp Skeleton.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o read.o read.cpp
-
 skel.o: skel.cpp Skeleton.hpp \
+		Bone.hpp \
+		Fatal.hpp \
+		Vec3.hpp \
 		Viewer.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o skel.o skel.cpp
+
+moc_Skeleton.o: moc_Skeleton.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_Skeleton.o moc_Skeleton.cpp
 
 moc_Viewer.o: moc_Viewer.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_Viewer.o moc_Viewer.cpp

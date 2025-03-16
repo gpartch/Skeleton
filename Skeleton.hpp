@@ -333,11 +333,15 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          void setDIM(double DIM);    //  Slot to set dim
          void reset(void);           //  Reset view
          void setSelectedBone(int idx); // set selected bone to idx, or if idx is already selected set to unselected (-1)
+         void resetBones(void);
          
 
       signals:
          void setAngles(QString text);  //  Signal for display angles
          void setDim(double dim);     //  Signal for display dimensions
+         void setWidgetGX(double dim);
+         void setWidgetGY(double dim);
+         void setWidgetGZ(double dim);
          void resetBoneSelectedBtn(int b); // reset all buttons checked value to false except idx
       
       // GL functionality
