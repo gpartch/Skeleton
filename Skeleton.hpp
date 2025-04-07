@@ -145,17 +145,17 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          {0,11.75,.45},    // 2.C torso/ thorax/ mid-spine
          {0,-16,2},        // 3.D head/ neck/ upper spine
 
-         {6,0,1},          // 4.E left shoulder blade
-         {6,-1.25,.5},     // 5.F left upper arm
-         {-.5,-12,.5},     // 6.G left lower arm (ulna)
-         {-.5,-12,.5},     // 7.H left lower arm (radius)
-         {1.5,-9.75,.75},  // 8.I left hand
+         {1.75,0,1.5},          // 4.E left shoulder blade
+         {0,-1.25,-.5},    // 5.F left upper arm
+         {-1.15,-12,0},     // 6.G left lower arm (ulna)
+         {.1,-12.25,0},     // 7.H left lower arm (radius)
+         {1,-9.8,.5},  // 8.I left hand
 
-         {-6,0,1},         // 9.J right shoulder blade
-         {-6,-1.25,.5},    // 10.K right upper arm
-         {.5,-12,.5},      // 11.L right lower arm (ulna)
-         {.5,-12,.5},      // 12.M right lower arm (radius)
-         {-1.5,-9.75,.75}, // 13.N right hand
+         {-1.75,0,1.5},         // 9.J right shoulder blade
+         {0,-1.25,-.5},    // 10.K right upper arm
+         {1.15,-12,0},      // 11.L right lower arm (ulna)
+         {-.1,-12.25,0},      // 12.M right lower arm (radius)
+         {-1,-9.8,.5}, // 13.N right hand
 
          {3,-3.25,-2.25},  // 14.O left upper leg
          {0,-16.75,0},     // 15.P left lower leg
@@ -168,6 +168,37 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          {0,-16.25,0},     // 21.V right ball of foot
          {0,-2.25,-1.75},  // 22.W right foot
          {0,0,7.5}         // 23.X right toes
+      };
+      const offset bones_pre_off[NUM_BONES]
+      {
+         {0,0,0},       // 0.A pelvis/ tailbone
+         {0,0,0},    // 1.B lumbar/ lower spine
+         {0,0,0},    // 2.C torso/ thorax/ mid-spine
+         {0,0,0},        // 3.D head/ neck/ upper spine
+
+         {4,0,0},          // 4.E left shoulder blade
+         {0,0,0},    // 5.F left upper arm
+         {.25,0,.75},     // 6.G left lower arm (ulna)
+         {0,0,0},     // 7.H left lower arm (radius)
+         {0,0,0},  // 8.I left hand
+
+         {-4,0,0},         // 9.J right shoulder blade
+         {0,0,0},    // 10.K right upper arm
+         {.25,0,.75},      // 11.L right lower arm (ulna)
+         {0,0,0},      // 12.M right lower arm (radius)
+         {0,0,0}, // 13.N right hand
+
+         {0,0,0},  // 14.O left upper leg
+         {0,0,0},     // 15.P left lower leg
+         {0,0,0},     // 16.Q left ball of foot
+         {0,0,0},  // 17.R left foot
+         {0,0,0},        // 18.S left toes
+
+         {0,0,0}, // 19.T right upper leg
+         {0,0,0},     // 20.U right lower leg
+         {0,0,0},     // 21.V right ball of foot
+         {0,0,0},  // 22.W right foot
+         {0,0,0}         // 23.X right toes
       };
       // bone adjacencies as indices of bones array
       // listed as adj if the movement of one bone directly impacts another - NOT whether they are next to each other
@@ -234,7 +265,41 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          {up,down}, // 22.W right foot
          {up} // 23.X right toes
       };
-      // angles for bone motion
+      // join type - conjoined (con): move together or disjoined(dis) - move separately
+      // eg whether or not to transfer the rotation of a bone to another
+      const vector<vector<std::shared_ptr<join>>> bones_j
+      { 
+         {nullptr,nullptr,nullptr}, // 0.A pelvis/ tailbone
+         {nullptr,nullptr}, // 1.B lumbar/ lower spine
+         {nullptr,nullptr,nullptr,nullptr}, // 2.C torso/ thorax/ mid-spine
+         {nullptr}, // 3.D head/ neck/ upper spine
+
+         {nullptr,nullptr}, // 4.E left shoulder blade
+         {nullptr,nullptr,nullptr}, // 5.F left upper arm
+         {nullptr,make_shared<join>(pheta,1),nullptr}, // 6.G left lower arm (ulna)
+         {nullptr,make_shared<join>(pheta,1),make_shared<join>(theta,.5)}, // 7.H left lower arm (radius)
+         {nullptr,make_shared<join>(theta,2)}, // 8.I left hand
+
+         {nullptr,nullptr}, // 9.J right shoulder blade
+         {nullptr,nullptr,nullptr}, // 10.K right upper arm
+         {nullptr,make_shared<join>(pheta,1),nullptr}, // 11.L right lower arm (ulna)
+         {nullptr,make_shared<join>(pheta,1),make_shared<join>(theta,.5)}, // 12.M right lower arm (radius)
+         {nullptr,make_shared<join>(theta,2)}, // 13.N right hand
+
+         {nullptr,nullptr}, // 14.O left upper leg
+         {nullptr,nullptr}, // 15.P left lower leg
+         {nullptr,nullptr}, // 16.Q left ball of foot
+         {nullptr,nullptr}, // 17.R left foot
+         {nullptr}, // 18.S left toes
+
+         {nullptr,nullptr}, // 19.T right upper leg
+         {nullptr,nullptr}, // 20.U right lower leg
+         {nullptr,nullptr}, // 21.V right ball of foot
+         {nullptr,nullptr}, // 22.W right foot
+         {nullptr} // 23.X right toes
+      };
+
+      // initial angles for bone motion
       angles bones_ang[NUM_BONES]
       {
          {0,0},         // 0.A pelvis/ tailbone
@@ -242,16 +307,28 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          {0,0},         // 2.C torso/ thorax/ mid-spine
          {0,0},         // 3.D head/ neck/ upper spine
 
+         // {0,0},         // 4.E left shoulder blade
+         // {0,92},        // 5.F left upper arm
+         // {-10,-10},         // 6.G left lower arm (ulna)
+         // {-10,-10},     // 7.H left lower arm (radius)
+         // {0,0},         // 8.I left hand
+
+         // {0,0},         // 9.J right shoulder blade
+         // {0,92},        // 10.K right upper arm
+         // {-10,-10},     // 11.L right lower arm (ulna)
+         // {-10,-10},     // 12.M right lower arm (radius)
+         // {0,0},         // 13.N right hand
+
          {0,0},         // 4.E left shoulder blade
-         {0,92},        // 5.F left upper arm
+         {0,85},        // 5.F left upper arm
          {0,0},         // 6.G left lower arm (ulna)
-         {-10,-10},     // 7.H left lower arm (radius)
+         {0,0},     // 7.H left lower arm (radius)
          {0,0},         // 8.I left hand
 
          {0,0},         // 9.J right shoulder blade
-         {0,92},        // 10.K right upper arm
-         {-10,-10},     // 11.L right lower arm (ulna)
-         {-10,-10},     // 12.M right lower arm (radius)
+         {0,85},        // 10.K right upper arm
+         {0,0},     // 11.L right lower arm (ulna)
+         {0,0},     // 12.M right lower arm (radius)
          {0,0},         // 13.N right hand
 
          {0,0},         // 14.O left upper leg

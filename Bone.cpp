@@ -1,6 +1,6 @@
 #include "Bone.hpp"
 
-Bone::Bone(QOpenGLWidget* widget, QString file_name, QString new_name, angles new_ang, offset new_off, int new_inv_norm, int new_idx) :  main_widget(widget)
+Bone::Bone(QOpenGLWidget* widget, QString file_name, QString new_name, angles new_ang, offset new_off, offset new_pre_off, int new_inv_norm, int new_idx) :  main_widget(widget)
 {
     main_widget = widget;
 
@@ -8,6 +8,7 @@ Bone::Bone(QOpenGLWidget* widget, QString file_name, QString new_name, angles ne
     name = new_name;
     ang = new_ang;
     off = new_off;
+    pre_off = new_pre_off;
     idx = new_idx;
     inv_norm = new_inv_norm;
     adj = {};
@@ -270,10 +271,14 @@ void Bone::incrementBoneAng(int th, int ph)
     for(int i = 0; i < len; i++)
     {
         adj_bone adj_b = adj.at(i);
+        shared_ptr<join> adj_join = adj_b.j;
         // if bone is concurrent, eg moves together, and hasn't been set yet, set th,ph for adj bone
-        if(adj_b.dir == neither && !adj_b.adj_bone->getVisited())
+        if(adj_join != nullptr && !adj_b.adj_bone->getVisited())
         {
-            adj_b.adj_bone->incrementBoneAng(th,ph);
+            if(adj_join->a == theta) adj_b.adj_bone->incrementBoneAng(th*adj_join->s,0);
+            else if(adj_join->a == pheta) adj_b.adj_bone->incrementBoneAng(0,ph*adj_join->s);
+            else if(adj_join->a == both) adj_b.adj_bone->incrementBoneAng(th*adj_join->s,ph*adj_join->s);
+            else fatal("Invalid option in incrementBoneAng");
         }
     }
 }
@@ -282,7 +287,7 @@ void Bone::rotateBone(ang_dir a, int x, int y, int z)
     if(!main_widget) fatal("bone rotate function accessed without main opengl context");
     
     main_widget->makeCurrent();
-    if(a == t) {glRotated(ang.th,x,y,z);}
+    if(a == theta) {glRotated(ang.th,x,y,z);}
     else {glRotated(ang.ph,x,y,z);}
 }
 void Bone::offsetBone()
@@ -291,6 +296,11 @@ void Bone::offsetBone()
 
     main_widget->makeCurrent();
     glTranslated(off.x, off.y, off.z);
+}
+void Bone::preOffsetBone()
+{
+    main_widget->makeCurrent();
+    glTranslated(pre_off.x, pre_off.y, pre_off.z);
 }
 int Bone::getBoneIdx()
 {
@@ -308,9 +318,24 @@ bool Bone::getVisited()
 {
     return visited;
 }
-
+void Bone::setVisited(bool b)
+{
+    visited = b;
+}
 void Bone::setBoneAng(int th, int ph)
 {
     ang.th = th;
     ang.ph = ph;
+}
+void Bone::drawRotationAxis()
+{
+    main_widget->makeCurrent();
+
+    glDisable(GL_LIGHTING);
+    glPointSize(8);
+    glColor3f(1,0,0);
+    glBegin(GL_POINTS);
+    glVertex3d(off.x+pre_off.x, off.y+pre_off.y, off.z + pre_off.z);
+    glEnd();
+    glEnable(GL_LIGHTING);
 }

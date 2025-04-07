@@ -7,11 +7,12 @@ void Skeleton::initBoneAdj()
     adjacency.resize(NUM_BONES);
     for(int i = 0; i < NUM_BONES; i++)
     {
-        //qDebug() << "init adjacency for " << bones[i]->getBoneName();
         // get adjacency list for current bone
         vector<int> adj_list = bones_adj.at(i);
         // get directional information for bones adj to current bone
         vector<bone_dir> dir_list = bones_dir.at(i);
+        // get joins for current bone
+        vector<shared_ptr<join>> join_list = bones_j.at(i);
 
         int num_adj = bones_adj.at(i).size();
         for(int j=0; j<num_adj; j++)
@@ -22,8 +23,10 @@ void Skeleton::initBoneAdj()
             shared_ptr<Bone> adj_ptr = bones[adj_idx];
             // direction of the adjacent bone from current bone
             bone_dir adj_dir = dir_list.at(j);
+            // join for adjacent bone
+            shared_ptr<join> adj_join = join_list.at(j);
             
-            adj_bone new_adj = {adj_ptr,adj_dir};
+            adj_bone new_adj = {adj_ptr,adj_dir,adj_join};
             adjacency.at(i).push_back(new_adj);
             //qDebug() << "   " << new_adj.adj_bone->getBoneName();
             if (adj_ptr == nullptr) fatal("null adj ptr");
@@ -49,7 +52,7 @@ void Skeleton::initializeGL()
     {
         //qDebug().noquote() << "building " << bones_n[i];
         QString bone_file_path = (bones_adr!="" ? (bones_adr + "/" + bones_f[i]) : ("./" + bones_f[i]));
-        shared_ptr<Bone> new_bone = std::make_shared<Bone>(this, bone_file_path,bones_n[i], bones_ang[i], bones_off[i], bones_l[ i], i);
+        shared_ptr<Bone> new_bone = std::make_shared<Bone>(this, bone_file_path,bones_n[i], bones_ang[i], bones_off[i], bones_pre_off[i], bones_l[i], i);
         if(new_bone == nullptr) fatal("null bone in newBone: " + bones_n[i]);
         (*new_bone).initBone();
         bones[i] = new_bone;
@@ -80,6 +83,7 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
 {
     glColor3f(1,1,1);
 
+
     Bone pelvis = *(bones[0]);
     Bone lumbar = *(bones[1]);
     Bone torso = *(bones[2]);
@@ -95,12 +99,12 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
         glPushMatrix();
             // Lumbar
             lumbar.offsetBone();
-            lumbar.rotateBone(p,1,0,0);
+            lumbar.rotateBone(pheta,1,0,0);
             glTranslated(0,5.25,2.25); // move rotation pt on lumbar to the origin
             drawBone(lumbar);
             glPushMatrix();
                 // Torso
-                torso.rotateBone(p,1,0,0);
+                torso.rotateBone(pheta,1,0,0);
                 torso.offsetBone();
                 drawBone(torso);
                 glPushMatrix();
@@ -109,8 +113,8 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
                     drawArm(9,-1);
                     glPushMatrix();
                         // Head
-                        head.rotateBone(p,1,0,0);
-                        head.rotateBone(t,0,1,0);
+                        head.rotateBone(pheta,1,0,0);
+                        head.rotateBone(theta,0,1,0);
                         head.offsetBone();
                         drawBone(head);
                     glPopMatrix();
@@ -137,21 +141,21 @@ void Skeleton::drawLeg(int idx, float i) // draw leg: i - +/- 1 axis rotation sp
     // move complete leg
         // femur
         femur.offsetBone();
-        femur.rotateBone(t,0,0,i);
-        femur.rotateBone(p,-1,0,0);
+        femur.rotateBone(theta,0,0,i);
+        femur.rotateBone(pheta,-1,0,0);
         drawBone(femur);
         glPushMatrix();
             // tibia/fibula
             // move tibfib+talus+foot+toes down the y axis the length of the femur
             tibfib.offsetBone();
-            tibfib.rotateBone(p,-1,0,0);
+            tibfib.rotateBone(pheta,-1,0,0);
             drawBone(tibfib);
             glPushMatrix();
                 // talus
                 //move talus+foot+toes down the y axis the length of the tibia/fibula
                 talus.offsetBone();
-                talus.rotateBone(t,0,1,0);
-                talus.rotateBone(p,-1,0,0);
+                talus.rotateBone(theta,0,1,0);
+                talus.rotateBone(pheta,-1,0,0);
                 drawBone(talus);
                 glPushMatrix();
                     // foot
@@ -162,7 +166,7 @@ void Skeleton::drawLeg(int idx, float i) // draw leg: i - +/- 1 axis rotation sp
                         // toes
                         // move toes forward along z axis the length of foot
                         toes.offsetBone();
-                        toes.rotateBone(p,-1,0,0);
+                        toes.rotateBone(pheta,-1,0,0);
                         drawBone(toes);
                     glPopMatrix();
                 glPopMatrix();
@@ -183,29 +187,55 @@ void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation spec
 
     glPushMatrix();
         // shoulder blade
+        shoulder.offsetBone();
+        shoulder.rotateBone(theta,0,i,0);
+        shoulder.rotateBone(pheta,0,0,i);
+        shoulder.preOffsetBone();
+        drawBone(shoulder);
         glPushMatrix();
-            shoulder.offsetBone();
-            drawBone(shoulder);
-        glPopMatrix();
-        // upper arm
-        humerus.offsetBone();
-        humerus.rotateBone(t,0,i,0);
-        humerus.rotateBone(p,0,0,i);
-        drawBone(humerus);
-        glPushMatrix();
-            // lower arm - radius + ulna
-            // radius
+            // upper arm
+            humerus.offsetBone();
+            humerus.rotateBone(theta,0,i,0);
+            humerus.rotateBone(pheta,0,0,i);
+            drawBone(humerus);
             glPushMatrix();
-                radius.offsetBone();
-                radius.rotateBone(p,0,0,i);
-                drawBone(radius);
-                drawBone(ulna);
+                // lower arm - radius + ulna
+                // radius
+                // glRotated(-10,0,0,i);
                 glPushMatrix();
-                    // hand
-                    hand.offsetBone();
-                    hand.rotateBone(t,-i,0,0);
-                    hand.rotateBone(p,0,0,i);
-                    drawBone(hand);
+                    //glTranslated(.6,0,1);
+                    
+                    glPushMatrix();
+                        ulna.offsetBone();
+                        ulna.rotateBone(pheta,i,0,0);
+                        
+                        // glRotated(5,i,0,0);
+                        //glRotated(-5,0,0,i);
+                        //ulna.preOffsetBone();
+                        drawBone(ulna);
+                    glPopMatrix();
+                    
+                    
+                    glPushMatrix();
+                        radius.offsetBone();
+                        ulna.rotateBone(pheta,i,0,0);
+                        radius.rotateBone(theta,0,i,0);
+                        
+                        //glRotated(1,i,0,0);
+                        //glRotated(-7,0,0,i);
+                        //glTranslated(0,9,0);
+                        //glRotated(-2,0,0,i);
+                        // glRotated(10,0,0,i);
+                        radius.preOffsetBone();
+                        drawBone(radius);
+                        glPushMatrix();
+                            // hand
+                            hand.offsetBone();
+                            hand.rotateBone(theta,0,i,0);
+                            hand.rotateBone(pheta,0,0,i);
+                            drawBone(hand);
+                        glPopMatrix();
+                    glPopMatrix();
                 glPopMatrix();
             glPopMatrix();
         glPopMatrix();
