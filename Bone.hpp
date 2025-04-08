@@ -72,7 +72,7 @@ struct pixel {unsigned char r,g,b,a; vec3 p;};
 class Bone : protected QOpenGLFunctions
 {
     public:
-        Bone(QOpenGLWidget* widget, QString file_name, QString name, angles ang, offset off, offset pre_off, int inv_norm, int idx);
+        Bone(QOpenGLWidget* widget, QString file_name, QString name, angles ang, offset off, int inv_norm, int idx);
         void printBone();
         void drawBone(int mode);
         void loadBone();
@@ -80,9 +80,7 @@ class Bone : protected QOpenGLFunctions
         void initAdj(vector<adj_bone> a);
         void rotateBone(ang_dir a, int x, int y, int z);
         void offsetBone();
-        void preOffsetBone();
         void incrementBoneAng(int th, int ph);
-        void drawRotationAxis();
         int getBoneIdx();
         QString getBoneName();
         void setFlag(bool f);
@@ -94,7 +92,7 @@ class Bone : protected QOpenGLFunctions
         QString adr; // address of the bone object file
         QString name; // name of the bone
         angles ang; // rotation angles th,ph
-        offset pre_off; // pre-rotation translation to move axis of rotation to correct place
+        //offset pre_off; // pre-rotation translation to move axis of rotation to correct place
         offset off; // xyz offset post-rotation
         int idx; // index/ model number for bone
         vector<adj_bone> adj; // adjacent bones
