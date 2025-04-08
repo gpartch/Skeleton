@@ -52,7 +52,7 @@ void Skeleton::initializeGL()
     {
         //qDebug().noquote() << "building " << bones_n[i];
         QString bone_file_path = (bones_adr!="" ? (bones_adr + "/" + bones_f[i]) : ("./" + bones_f[i]));
-        shared_ptr<Bone> new_bone = std::make_shared<Bone>(this, bone_file_path,bones_n[i], bones_ang[i], bones_off[i], bones_pre_off[i], bones_l[i], i);
+        shared_ptr<Bone> new_bone = std::make_shared<Bone>(this, bone_file_path,bones_n[i], bones_ang[i], bones_off[i], bones_l[i], i);
         if(new_bone == nullptr) fatal("null bone in newBone: " + bones_n[i]);
         (*new_bone).initBone();
         bones[i] = new_bone;
@@ -83,7 +83,6 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
 {
     glColor3f(1,1,1);
 
-
     Bone pelvis = *(bones[0]);
     Bone lumbar = *(bones[1]);
     Bone torso = *(bones[2]);
@@ -104,8 +103,8 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
             drawBone(lumbar);
             glPushMatrix();
                 // Torso
-                torso.rotateBone(pheta,1,0,0);
                 torso.offsetBone();
+                torso.rotateBone(pheta,1,0,0);
                 drawBone(torso);
                 glPushMatrix();
                     // Arms
@@ -113,9 +112,9 @@ void Skeleton::drawSkeleton() // draw the complete skeleton
                     drawArm(9,-1);
                     glPushMatrix();
                         // Head
+                        head.offsetBone();
                         head.rotateBone(pheta,1,0,0);
                         head.rotateBone(theta,0,1,0);
-                        head.offsetBone();
                         drawBone(head);
                     glPopMatrix();
                 glPopMatrix();
@@ -190,7 +189,6 @@ void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation spec
         shoulder.offsetBone();
         shoulder.rotateBone(theta,0,i,0);
         shoulder.rotateBone(pheta,0,0,i);
-        shoulder.preOffsetBone();
         drawBone(shoulder);
         glPushMatrix();
             // upper arm
@@ -199,42 +197,18 @@ void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation spec
             humerus.rotateBone(pheta,0,0,i);
             drawBone(humerus);
             glPushMatrix();
-                // lower arm - radius + ulna
-                // radius
-                // glRotated(-10,0,0,i);
+                ulna.offsetBone();
+                ulna.rotateBone(pheta,i,0,0);
+                // axis of rotation adjustment
+                glTranslated(.9,.2,-.6);
+                drawBone(ulna);
                 glPushMatrix();
-                    //glTranslated(.6,0,1);
-                    
+                    radius.rotateBone(theta,0,i,0);
+                    drawBone(radius);
                     glPushMatrix();
-                        ulna.offsetBone();
-                        ulna.rotateBone(pheta,i,0,0);
-                        
-                        // glRotated(5,i,0,0);
-                        //glRotated(-5,0,0,i);
-                        //ulna.preOffsetBone();
-                        drawBone(ulna);
-                    glPopMatrix();
-                    
-                    
-                    glPushMatrix();
-                        radius.offsetBone();
-                        ulna.rotateBone(pheta,i,0,0);
-                        radius.rotateBone(theta,0,i,0);
-                        
-                        //glRotated(1,i,0,0);
-                        //glRotated(-7,0,0,i);
-                        //glTranslated(0,9,0);
-                        //glRotated(-2,0,0,i);
-                        // glRotated(10,0,0,i);
-                        radius.preOffsetBone();
-                        drawBone(radius);
-                        glPushMatrix();
-                            // hand
-                            hand.offsetBone();
-                            hand.rotateBone(theta,0,i,0);
-                            hand.rotateBone(pheta,0,0,i);
-                            drawBone(hand);
-                        glPopMatrix();
+                        hand.offsetBone();
+                        hand.rotateBone(pheta,i,0,0);
+                        drawBone(hand);
                     glPopMatrix();
                 glPopMatrix();
             glPopMatrix();
