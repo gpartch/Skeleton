@@ -1,12 +1,13 @@
 #include "Bone.hpp"
 
-Bone::Bone(QOpenGLWidget* widget, QString file_name, QString new_name, angles new_ang, offset new_off, int new_inv_norm, int new_idx) :  main_widget(widget)
+Bone::Bone(QOpenGLWidget* widget, QString file_name, QString new_name, angles new_ang,  angle_limits new_ang_lim, offset new_off, int new_inv_norm, int new_idx) :  main_widget(widget)
 {
     main_widget = widget;
 
     adr = file_name;
     name = new_name;
     ang = new_ang;
+    ang_lim = new_ang_lim;
     off = new_off;
     idx = new_idx;
     inv_norm = new_inv_norm;
@@ -261,8 +262,20 @@ void Bone::initAdj(vector<adj_bone> a)
 }
 void Bone::incrementBoneAng(int th, int ph)
 {
-    ang.th += th;
-    ang.ph += ph;
+    int dth = 0,dph = 0;
+
+    if(th + ang.th > ang_lim.max.th) {dph = ang_lim.max.th - ang.th;}
+    else if(th + ang.th < ang_lim.min.th) {dph = ang_lim.min.th - ang.th;}
+    else dth = th;
+
+    if(ph + ang.ph > ang_lim.max.ph) {dph = ang_lim.max.ph - ang.ph;}
+    else if(ph + ang.ph < ang_lim.min.ph) {dph = ang_lim.min.ph - ang.ph;}
+    else dph = ph;
+
+    ang.th += dth;
+    ang.ph += dph;
+
+    // qDebug() << "Incrementing " << name << " by th,ph=" << dth << "," << dph << " -> TH:" << ang.th << " PH:" << ang.ph;
 
     // find any bones that move concurrently (bone_dir = neither, not up or down) and add to those as well
     visited = true;
@@ -274,9 +287,9 @@ void Bone::incrementBoneAng(int th, int ph)
         // if bone is concurrent, eg moves together, and hasn't been set yet, set th,ph for adj bone
         if(adj_join != nullptr && !adj_b.adj_bone->getVisited())
         {
-            if(adj_join->a == theta) adj_b.adj_bone->incrementBoneAng(th*adj_join->s,0);
-            else if(adj_join->a == pheta) adj_b.adj_bone->incrementBoneAng(0,ph*adj_join->s);
-            else if(adj_join->a == both) adj_b.adj_bone->incrementBoneAng(th*adj_join->s,ph*adj_join->s);
+            if(adj_join->a == theta) adj_b.adj_bone->incrementBoneAng(dth*adj_join->s,0);
+            else if(adj_join->a == pheta) adj_b.adj_bone->incrementBoneAng(0,dph*adj_join->s);
+            else if(adj_join->a == both) adj_b.adj_bone->incrementBoneAng(dth*adj_join->s,dph*adj_join->s);
             else fatal("Invalid option in incrementBoneAng");
         }
     }

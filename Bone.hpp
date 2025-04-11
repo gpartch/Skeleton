@@ -63,16 +63,16 @@ struct rgb {unsigned char r,g,b;};
 typedef struct {vec3 v,n;rgb c;unsigned char a;} vert;
 struct elem {int a,b,c;};
 struct pixel {unsigned char r,g,b,a; vec3 p;};
-// struct angle_limits
-// {
-//     angles neg;
-//     angles pos;
-// };
+struct angle_limits
+{
+    angles min;
+    angles max;
+};
 
 class Bone : protected QOpenGLFunctions
 {
     public:
-        Bone(QOpenGLWidget* widget, QString file_name, QString name, angles ang, offset off, int inv_norm, int idx);
+        Bone(QOpenGLWidget* widget, QString file_name, QString name, angles ang, angle_limits ang_lim, offset off, int inv_norm, int idx);
         void printBone();
         void drawBone(int mode);
         void loadBone();
@@ -92,7 +92,7 @@ class Bone : protected QOpenGLFunctions
         QString adr; // address of the bone object file
         QString name; // name of the bone
         angles ang; // rotation angles th,ph
-        //offset pre_off; // pre-rotation translation to move axis of rotation to correct place
+        angle_limits ang_lim; // limits on angles of motion
         offset off; // xyz offset post-rotation
         int idx; // index/ model number for bone
         vector<adj_bone> adj; // adjacent bones

@@ -52,7 +52,7 @@ void Skeleton::initializeGL()
     {
         //qDebug().noquote() << "building " << bones_n[i];
         QString bone_file_path = (bones_adr!="" ? (bones_adr + "/" + bones_f[i]) : ("./" + bones_f[i]));
-        shared_ptr<Bone> new_bone = std::make_shared<Bone>(this, bone_file_path,bones_n[i], bones_ang[i], bones_off[i], bones_l[i], i);
+        shared_ptr<Bone> new_bone = std::make_shared<Bone>(this, bone_file_path,bones_n[i], bones_ang[i], bones_lim[i], bones_off[i], bones_l[i], i);
         if(new_bone == nullptr) fatal("null bone in newBone: " + bones_n[i]);
         (*new_bone).initBone();
         bones[i] = new_bone;
