@@ -73,6 +73,8 @@ void Bone::drawBone(int mode)
     glEnable(GL_NORMALIZE);
     //  Enable lighting
     glEnable(GL_LIGHTING);
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
     //  Enable light 0
     glEnable(GL_LIGHT0);
     if(mode == 0)

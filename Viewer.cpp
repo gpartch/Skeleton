@@ -177,6 +177,10 @@ void Viewer::resetBoneSelectedBtn(int b)
       {
          bones.at(i)->setChecked(false);
       }
+      else if(i == b)
+      {
+         bones.at(i)->setChecked(true);
+      }
    }
    bbtng->setExclusive(true);
 }

@@ -50,7 +50,7 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
       void drawBone(Bone b); // draw bone at origin
       void drawLeg(int idx, float i); // draw leg: i - +/- axis rotation specifier, ch - starting char signifier
       void drawArm(int idx, float i); // draw arm: i - +/- axis rotation specifier, ch - starting char signifier
-      pixel getPx();
+      unsigned char getAlpha();
       int getNumBones() {return NUM_BONES;}
 
    private:

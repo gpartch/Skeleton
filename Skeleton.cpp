@@ -44,8 +44,13 @@ void Skeleton::initializeGL()
 {
     initializeOpenGLFunctions();
     glEnable(GL_DEPTH_TEST); //  Enable Z-buffer depth testing
+    glDisable(GL_BLEND);
     setMouseTracking(true);  //  Ask for mouse events
     glClearColor(0,0,0,255);
+
+    QSurfaceFormat format;
+    format.setAlphaBufferSize(8); // Request an 8-bit alpha channel
+    QSurfaceFormat::setDefaultFormat(format);
 
     // initialize skeleton and bones
     for (int i = 0; i < NUM_BONES; i++)
@@ -275,6 +280,13 @@ void Skeleton::mousePressEvent(QMouseEvent* e)
 {
    mouse = true;
    pos = e->pos();  //  Remember mouse location
+   int a = (int)getAlpha(); //  Get alpha value at mouse location
+   if(a >= 0 && a < NUM_BONES)
+   {
+        if(selected_bone == a) setSelectedBone(-1);
+        else setSelectedBone(a);
+        emit resetBoneSelectedBtn(selected_bone);
+   }
 }
 
 //
@@ -363,7 +375,7 @@ void Skeleton::resizeGL(int width, int height)
 //
 void Skeleton::paintGL()
 {
-    glClearColor(0,0,0,0);
+    glClearColor(0,0,0,255);
     //  Erase the window and the depth buffer
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
@@ -406,6 +418,10 @@ void Skeleton::paintGL()
     //  Emit signal with display angles and dimensions
     emit setAngles("th,ph= "+QString::number(th)+","+QString::number(ph));
 
+    // GLint alphaBits;
+    // glGetIntegerv(GL_ALPHA_BITS, &alphaBits);
+    // qDebug() << "Alpha bits in framebuffer:" << alphaBits;
+
     //  Done
     glFlush();
 }
@@ -427,17 +443,15 @@ void Skeleton::project()
    glMatrixMode(GL_MODELVIEW);
 }
 
-pixel Skeleton::getPx()
+unsigned char Skeleton::getAlpha()
 {
-   makeCurrent();
-   int x = pos.x();
-   int y = height()-pos.y();
-   float z;
-   unsigned char c[4];
-   glReadPixels(x,y,1,1,GL_RGBA,GL_UNSIGNED_BYTE,c);
-   glReadPixels(x,y,1,1,GL_DEPTH_COMPONENT,GL_FLOAT,&z);
-   vec3 p(x,y,z);
-   return {.r=c[0],.g=c[1],.b=c[2],.a=c[3],.p=p};
+    makeCurrent();
+    int x = pos.x();
+    int y = height()-pos.y();
+    unsigned char c[4];
+    update();
+    glReadPixels(x,y,1,1,GL_RGBA,GL_UNSIGNED_BYTE,c);
+    return c[3];
 }
 
 //-------------------------------------------------------------------------------
