@@ -55,6 +55,12 @@ class Viewer : public QWidget
         QButtonGroup* bbtng = new QButtonGroup;
         QList<QPushButton*> bones = {pelvis, lumbar, torso, head, l_scapula, l_humerus, l_ulna, l_radius, l_hand, r_scapula, r_humerus, r_ulna, r_radius, r_hand, l_femur, l_tibfib, l_talus, l_foot, l_toes, r_femur, r_tibfib, r_talus, r_foot, r_toes};
 
+        QLabel* selected_bone_label = new QLabel("Bone: ");
+        QLabel* selected_bone = new QLabel("--");
+
+        QLabel* bone_angle_label = new QLabel("Angle: ");
+        QLabel* bone_angle = new QLabel("--");
+
         bool bone_selected = -1;
         int NUM_BONES;
     
@@ -63,6 +69,7 @@ class Viewer : public QWidget
 
     private slots:
         void resetBoneSelectedBtn(int b);
+        void updateBoneInfo(QString selected_bone, QString bone_angles);
 };
 
 #endif

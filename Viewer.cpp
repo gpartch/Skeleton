@@ -55,10 +55,10 @@ Viewer::Viewer(QWidget* parent)
    connect(skeleton , SIGNAL(setAngles(QString)) , angl , SLOT(setText(QString)));
    connect(skeleton , SIGNAL(setDim(double))   , d    , SLOT(setValue(double)));
    connect(skeleton, SIGNAL(resetBoneSelectedBtn(int)), this, SLOT(resetBoneSelectedBtn(int)));
-   
    connect(skeleton, SIGNAL(setWidgetGX(double)), gx, SLOT(setValue(double)));
    connect(skeleton, SIGNAL(setWidgetGY(double)), gy, SLOT(setValue(double)));
    connect(skeleton, SIGNAL(setWidgetGZ(double)), gz, SLOT(setValue(double)));
+   connect(skeleton, SIGNAL(setWidgetBoneInfo(QString,QString)), this, SLOT(updateBoneInfo(QString,QString)));
 
    connect(gx           , SIGNAL(valueChanged(double)) , skeleton , SLOT(setGX(double)));
    connect(gy           , SIGNAL(valueChanged(double)) , skeleton , SLOT(setGY(double)));
@@ -72,10 +72,10 @@ Viewer::Viewer(QWidget* parent)
    layout->setColumnStretch(0,100);
    // layout->SetFixedSize()
    layout->setColumnMinimumWidth(0,400);
-   layout->setRowStretch(4,100);
+   layout->setRowStretch(5,100);
 
    //  Lorenz widget
-   layout->addWidget(skeleton,0,0,5,1);
+   layout->addWidget(skeleton,0,0,6,1);
 
    //  Group Origin parameters
    QGroupBox* xyzbox = new QGroupBox("Origin");
@@ -161,7 +161,18 @@ Viewer::Viewer(QWidget* parent)
    bbox->setLayout(blay);
    layout->addWidget(bbox,2,1);
 
-   layout->addWidget(reset_bones,3,1);
+   QGroupBox* bone_info = new QGroupBox();
+   QGridLayout* bone_info_lay = new QGridLayout;
+
+   bone_info_lay->addWidget(selected_bone_label,0,0);
+   bone_info_lay->addWidget(selected_bone,0,1);
+   bone_info_lay->addWidget(bone_angle_label,1,0);
+   bone_info_lay->addWidget(bone_angle,1,1);
+
+   bone_info->setLayout(bone_info_lay);
+   layout->addWidget(bone_info,3,1);
+
+   layout->addWidget(reset_bones,4,1);
 
    //  Overall layout
    setLayout(layout);
@@ -183,4 +194,11 @@ void Viewer::resetBoneSelectedBtn(int b)
       }
    }
    bbtng->setExclusive(true);
+}
+
+void Viewer::updateBoneInfo(QString new_selected_bone, QString new_bone_angles)
+{
+   selected_bone->setText(new_selected_bone);
+   bone_angle->setText(new_bone_angles);
+   update();
 }

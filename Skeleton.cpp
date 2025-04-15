@@ -79,6 +79,8 @@ void Skeleton::setAng(int idx, int th, int ph) // increment bone motion angles
 {
     resetFlags();
     bones[idx]->incrementBoneAng(th,ph);
+    if(selected_bone != -1) emit setWidgetBoneInfo(bones[idx]->getBoneName(), bones[idx]->getBoneAng());
+    else emit setWidgetBoneInfo("--", "--");
 }
 void Skeleton::printSkeleton() // print bones information to terminal
 {
@@ -471,6 +473,9 @@ void Skeleton::setSelectedBone(int idx)
         emit resetBoneSelectedBtn(-1);
         update();
     }
+
+    if(selected_bone != -1) emit setWidgetBoneInfo(bones[idx]->getBoneName(), bones[idx]->getBoneAng());
+    else emit setWidgetBoneInfo("--", "--");
 }
 
 void Skeleton::resetBones(void)
@@ -479,5 +484,8 @@ void Skeleton::resetBones(void)
     {
         bones[i]->setBoneAng(bones_ang[i].th, bones_ang[i].ph);
     }
+    emit setWidgetBoneInfo("--", "--");
+    selected_bone = -1;
+    emit resetBoneSelectedBtn(-1);
     update();
 }
