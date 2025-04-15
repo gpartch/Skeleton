@@ -82,6 +82,7 @@ class Bone : protected QOpenGLFunctions
         void offsetBone();
         void incrementBoneAng(int th, int ph);
         int getBoneIdx();
+        QString getBoneAng();
         QString getBoneName();
         void setFlag(bool f);
         bool getVisited();

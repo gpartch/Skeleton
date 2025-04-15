@@ -336,3 +336,7 @@ void Bone::setBoneAng(int th, int ph)
     ang.th = th;
     ang.ph = ph;
 }
+QString Bone::getBoneAng()
+{
+    return QString::number(ang.th) + "," + QString::number(ang.ph);
+}
