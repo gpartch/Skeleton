@@ -203,7 +203,7 @@ void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation spec
             drawBone(humerus);
             glPushMatrix();
                 ulna.offsetBone();
-                ulna.rotateBone(pheta,i,0,0);
+                ulna.rotateBone(pheta,1,0,0);
                 // axis of rotation adjustment
                 glTranslated(.9,.2,-.6);
                 drawBone(ulna);
@@ -212,7 +212,7 @@ void Skeleton::drawArm(int idx, float i) // draw arm: i - +/- axis rotation spec
                     drawBone(radius);
                     glPushMatrix();
                         hand.offsetBone();
-                        hand.rotateBone(pheta,i,0,0);
+                        hand.rotateBone(pheta,1,0,0);
                         drawBone(hand);
                     glPopMatrix();
                 glPopMatrix();
