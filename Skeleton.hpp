@@ -145,13 +145,13 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          {0,1.5,0},    // 2.C torso/ thorax/ mid-spine
          {0,10.5,.75},        // 3.D head/ neck/ upper spine
 
-         {2.5,8,1.5},          // 4.E left shoulder blade
+         {2,8,1.5},          // 4.E left shoulder blade
          {4,1,-.5},    // 5.F left upper arm
          {-1,-11.75,.25},     // 6.G left lower arm (ulna)
          {-1,-11.75,.25},     // 7.H left lower arm (radius)
          {0,-9.8,0},  // 8.I left hand
 
-         {-2.5,8,1.5},         // 9.J right shoulder blade
+         {-2,8,1.5},         // 9.J right shoulder blade
          {-4,1,-.5},    // 10.K right upper arm
          {-1,-11.75,.25},      // 11.L right lower arm (ulna)
          {-1,-11.75,.25},      // 12.M right lower arm (radius)
@@ -334,11 +334,11 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
       angle_limits bones_lim[NUM_BONES] // limits on bone rotation {{min:th,ph},{max:th,ph}}
       {
          {{0,0},{0,0}}, // 0.A pelvis/ tailbone
-         {{0,-30},{0,60}}, // 1.B lumbar/ lower spine
-         {{0,-10},{0,30}}, // 2.C torso/ thorax/ mid-spine
-         {{0,-30},{0,45}}, // 3.D head/ neck/ upper spine
+         {{0,-30},{0,45}}, // 1.B lumbar/ lower spine
+         {{0,-10},{0,20}}, // 2.C torso/ thorax/ mid-spine
+         {{0,-10},{0,45}}, // 3.D head/ neck/ upper spine
 
-         {{},{}}, // 4.E left shoulder blade
+         {{-45,-10},{10,30}}, // 4.E left shoulder blade
          {{-120,0},{45,135}}, // 5.F left upper arm
          {{0,-170},{0,0}}, // 6.G left lower arm (ulna)
          {{-170,-150},{0,0}}, // 7.H left lower arm (radius)
@@ -350,17 +350,17 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          {{-170,-150},{0,0}}, // 12.M right lower arm (radius)
          {{-170,-80},{0,30}}, // 13.N right hand
 
-         {{},{}}, // 14.O left upper leg
-         {{},{}}, // 15.P left lower leg
-         {{},{}}, // 16.Q left ball of foot
-         {{},{}}, // 17.R left foot
-         {{},{}}, // 18.S left toes
+         {{-45,-20},{10,100}}, // 14.O left upper leg
+         {{0,-100},{0,0}}, // 15.P left lower leg
+         {{-30,-60},{30,30}}, // 16.Q left ball of foot
+         {{0,0},{0,0}}, // 17.R left foot
+         {{0,-15},{0,15}}, // 18.S left toes
 
-         {{},{}}, // 19.T right upper leg
-         {{},{}}, // 20.U right lower leg
-         {{},{}}, // 21.V right ball of foot
-         {{},{}}, // 22.W right foot
-         {{},{}} // 23.X right toes
+         {{-45,-20},{10,100}}, // 19.T right upper leg
+         {{0,-100},{0,0}}, // 20.U right lower leg
+         {{-30,-60},{30,30}}, // 21.V right ball of foot
+         {{0,0},{0,0}}, // 22.W right foot
+         {{0,-15},{0,15}} // 23.X right toes
       };
       
       // QT WIDGET
