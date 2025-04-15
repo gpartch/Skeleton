@@ -108,33 +108,33 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
       const QString bones_n[NUM_BONES]
       {
          "pelvis and tailbone",
-         "lumbar/ lower spine",
-         "torso and thorax/ mid-spine",
-         "head and neck/ upper spine",
+         "lumbar spine",
+         "torso and thoracic spine",
+         "skull and cervical spine",
 
-         "left scapula/ shoulder blade",
-         "left humerus/ upper arm",
-         "left ulna / lower arm",
-         "left radius/ lower arm",
+         "left scapula",
+         "left humerus",
+         "left ulna",
+         "left radius",
          "left hand",
 
-         "right scapula/ shoulder blade",
-         "right humerus/ upper arm",
-         "right ulna / lower arm",
-         "right radius/ lower arm",
+         "right scapula",
+         "right humerus",
+         "right ulna",
+         "right radius",
          "right hand",
 
-         "left femur/ upper leg",
-         "left tibia and fibula/ lower leg",
-         "left talus/ ball of foot",
-         "left foot",
-         "left toes",
+         "left femur",
+         "left tibia and fibula",
+         "left talus",
+         "left tarsals and metatarsals",
+         "left phalanges",
 
-         "right femur/ upper leg",
-         "right tibia and fibula/ lower leg",
-         "right talus/ ball of foot",
-         "right foot",
-         "right toes"
+         "right femur",
+         "right tibia and fibula",
+         "right talus",
+         "right tarsals and metatarsals",
+         "right phalanges"
       };
       // xyz offset for bones - translation relative to parent limb
       // eg - how does this limb need to be moved in x,y,z directions relative to parent limb
@@ -407,6 +407,7 @@ class Skeleton : public QOpenGLWidget, protected QOpenGLFunctions
          void setWidgetGY(double dim);
          void setWidgetGZ(double dim);
          void resetBoneSelectedBtn(int b); // reset all buttons checked value to false except idx
+         void setWidgetBoneInfo(QString bone_name, QString bone_ang); // set the bone angle label in the widget
       
       // GL functionality
       protected:
